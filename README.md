@@ -30,5 +30,9 @@ flutter build apk --debug --dart-define-from-file=env/dev.json
 
 ## Services
 
-- **Crash reporting:** Sentry project `dev-u15/physio-app`. No personal data or screenshots are sent.
-- **Backend:** Supabase, India region (ap-south-1). Apply `supabase/migrations/` once the project exists.
+- **Crash reporting:** Sentry project `dev-u15/physio-app`. The app sends no personal data or screenshots.
+  In Sentry, turn on *Project Settings → Security & Privacy → Prevent Storing of IP Addresses*,
+  otherwise Sentry derives a city from the network address.
+- **Backend:** Supabase project `physio-app` (ref `htbvpkxhbftbqbicmmgp`), Mumbai (ap-south-1).
+  Both files in `supabase/migrations/` are applied. Row-level security was tested with
+  clinicians and patients from two clinics, and the security advisor reports no issues.

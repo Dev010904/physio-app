@@ -1,0 +1,6 @@
+{
+  "APP_ENV": "dev",
+  "SENTRY_DSN": "",
+  "SUPABASE_URL": "",
+  "SUPABASE_PUBLISHABLE_KEY": ""
+}

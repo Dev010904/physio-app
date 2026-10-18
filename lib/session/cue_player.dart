@@ -21,10 +21,21 @@ class CuePlayer implements SessionCues {
   /// Holds shorter than this get no spoken countdown, so cues never overlap.
   static const _spokenCountdownMinSeconds = 5;
 
+  /// Beeps take no audio focus, so they never pause the patient's music or
+  /// cut off each other or the voice.
+  static final _toneContext = AudioContext(
+    android: const AudioContextAndroid(
+      audioFocus: AndroidAudioFocus.none,
+      usageType: AndroidUsageType.assistanceSonification,
+      contentType: AndroidContentType.sonification,
+    ),
+  );
+
   Future<void> init() async {
     for (final name in const ['move', 'release', 'tick', 'done']) {
       final player = AudioPlayer();
       await player.setPlayerMode(PlayerMode.lowLatency);
+      await player.setAudioContext(_toneContext);
       _players[name] = player;
     }
     try {
@@ -32,6 +43,8 @@ class CuePlayer implements SessionCues {
       await _tts.setLanguage(hasIndianEnglish ? 'en-IN' : 'en-US');
       await _tts.setSpeechRate(0.5);
       await _tts.awaitSpeakCompletion(false);
+      // Spoken like navigation prompts: other audio dips briefly, then returns.
+      await _tts.setAudioAttributesForNavigation();
     } catch (e) {
       debugPrint('Text-to-speech unavailable: $e');
     }
@@ -77,7 +90,7 @@ class CuePlayer implements SessionCues {
 
   void _say(String text) {
     if (!voiceOn.value) return;
-    _tts.speak(text).catchError((Object e) => debugPrint('speak failed: $e'));
+    _tts.speak(text, focus: true).catchError((Object e) => debugPrint('speak failed: $e'));
   }
 
   void _tone(String name) {

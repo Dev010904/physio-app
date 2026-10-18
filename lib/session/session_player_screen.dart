@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
@@ -16,7 +18,8 @@ class SessionPlayerScreen extends StatefulWidget {
   State<SessionPlayerScreen> createState() => _SessionPlayerScreenState();
 }
 
-class _SessionPlayerScreenState extends State<SessionPlayerScreen> {
+class _SessionPlayerScreenState extends State<SessionPlayerScreen>
+    with SingleTickerProviderStateMixin {
   late final SessionPlan _plan = SessionPlan.build(widget.exercises);
   late final CuePlayer _cues = CuePlayer(widget.exercises);
   late final SessionController _controller = SessionController(_plan, cues: _cues);
@@ -30,7 +33,7 @@ class _SessionPlayerScreenState extends State<SessionPlayerScreen> {
     _lifecycle; // start listening
     WakelockPlus.enable();
     _cues.init().whenComplete(() {
-      if (mounted) _controller.start();
+      if (mounted) _controller.start(this);
     });
   }
 
@@ -114,7 +117,12 @@ class _PlayerView extends StatelessWidget {
     return SafeArea(
       child: Column(
         children: [
-          LinearProgressIndicator(value: controller.sessionProgress),
+          RepaintBoundary(
+            child: CustomPaint(
+              size: const Size.fromHeight(4),
+              painter: _BarPainter(controller, Theme.of(context).colorScheme),
+            ),
+          ),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
             child: Text(
@@ -201,26 +209,33 @@ class _PhaseDial extends StatelessWidget {
       _ => colors.outline,
     };
 
+    // The ring repaints every frame from controller.frames; the text inside
+    // rebuilds only when the second, phase or pause state changes.
     return SizedBox.square(
       dimension: 280,
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          CircularProgressIndicator(
-            value: controller.phaseProgress,
-            strokeWidth: 14,
-            color: color,
-            backgroundColor: colors.surfaceContainerHighest,
-          ),
-          Column(
+      child: RepaintBoundary(
+        child: CustomPaint(
+          painter: _RingPainter(controller, color: color, track: colors.surfaceContainerHighest),
+          child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(_label(phase, exercise), style: text.titleLarge, textAlign: TextAlign.center),
               if (phase.kind == PhaseKind.transition)
                 Text(exercise.title, style: text.titleMedium, textAlign: TextAlign.center),
-              Text(
-                '${controller.secondsLeft}',
-                style: text.displayLarge?.copyWith(fontWeight: FontWeight.w600, color: color),
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 220),
+                transitionBuilder: (child, animation) => FadeTransition(
+                  opacity: animation,
+                  child: ScaleTransition(
+                    scale: Tween(begin: 0.85, end: 1.0).animate(animation),
+                    child: child,
+                  ),
+                ),
+                child: Text(
+                  '${controller.secondsLeft}',
+                  key: ValueKey('${controller.phaseIndex}-${controller.secondsLeft}'),
+                  style: text.displayLarge?.copyWith(fontWeight: FontWeight.w600, color: color),
+                ),
               ),
               Text(
                 controller.isPaused ? 'Paused · tap to resume' : 'Tap to pause',
@@ -228,7 +243,7 @@ class _PhaseDial extends StatelessWidget {
               ),
             ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -244,6 +259,53 @@ class _PhaseDial extends StatelessWidget {
     PhaseKind.rest => 'Rest',
     PhaseKind.transition => 'Up next',
   };
+}
+
+/// Phase ring, painted every frame so it sweeps continuously instead of in steps.
+class _RingPainter extends CustomPainter {
+  _RingPainter(this.controller, {required this.color, required this.track})
+    : super(repaint: controller.frames);
+
+  final SessionController controller;
+  final Color color;
+  final Color track;
+
+  static const _stroke = 14.0;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rect = (Offset.zero & size).deflate(_stroke / 2);
+    final paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = _stroke
+      ..strokeCap = StrokeCap.round;
+    canvas.drawArc(rect, 0, 2 * math.pi, false, paint..color = track);
+    final sweep = 2 * math.pi * controller.phaseProgress;
+    if (sweep > 0) canvas.drawArc(rect, -math.pi / 2, sweep, false, paint..color = color);
+  }
+
+  @override
+  bool shouldRepaint(_RingPainter old) => old.color != color || old.track != track;
+}
+
+/// Whole-session progress line under the app bar.
+class _BarPainter extends CustomPainter {
+  _BarPainter(this.controller, this.colors) : super(repaint: controller.frames);
+
+  final SessionController controller;
+  final ColorScheme colors;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    canvas.drawRect(Offset.zero & size, Paint()..color = colors.surfaceContainerHighest);
+    canvas.drawRect(
+      Offset.zero & Size(size.width * controller.sessionProgress, size.height),
+      Paint()..color = colors.primary,
+    );
+  }
+
+  @override
+  bool shouldRepaint(_BarPainter old) => old.colors != colors;
 }
 
 class _CompleteView extends StatelessWidget {

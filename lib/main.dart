@@ -4,10 +4,12 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'app.dart';
 import 'config/env.dart';
+import 'debug/frame_stats.dart';
 import 'exercises/exercise.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  if (Env.environment == 'dev') FrameStats.start();
 
   // The backend is optional: the patient app must work fully offline.
   if (Env.hasSupabase) {

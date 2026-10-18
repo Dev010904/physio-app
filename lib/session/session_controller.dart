@@ -1,6 +1,5 @@
-import 'dart:async';
-
 import 'package:flutter/foundation.dart';
+import 'package:flutter/scheduler.dart';
 
 import 'session_plan.dart';
 
@@ -13,7 +12,11 @@ abstract interface class SessionCues {
 }
 
 /// Runs a [SessionPlan] in real time. Tests drive it with [advance] directly;
-/// the app calls [start], which ticks it from a stopwatch so it never drifts.
+/// the app calls [start], which ticks it once per displayed frame.
+///
+/// Listeners hear only discrete changes (a new second, phase, pause or end),
+/// so widgets rebuild about once a second. Painters that need every frame,
+/// such as the dial, listen to [frames] instead and repaint without rebuilding.
 class SessionController extends ChangeNotifier {
   SessionController(this.plan, {this.cues})
     : assert(plan.phases.isNotEmpty),
@@ -25,7 +28,9 @@ class SessionController extends ChangeNotifier {
     }
   }
 
-  static const _tick = Duration(milliseconds: 100);
+  /// A longer gap between frames means frames stopped (app hidden or the
+  /// ticker muted); that time is not counted as exercise.
+  static const _maxFrameGap = Duration(seconds: 1);
 
   final SessionPlan plan;
   final SessionCues? cues;
@@ -38,7 +43,12 @@ class SessionController extends ChangeNotifier {
   bool _begun = false;
   bool _paused = false;
   bool _finished = false;
-  Timer? _timer;
+  Ticker? _ticker;
+  Duration _lastFrame = Duration.zero;
+  final _frames = _FrameSignal();
+
+  /// Fires on every frame and every change; for painters, not for rebuilds.
+  Listenable get frames => _frames;
 
   Phase get phase => plan.phases[_index];
   int get phaseIndex => _index;
@@ -70,19 +80,19 @@ class SessionController extends ChangeNotifier {
     _begun = true;
     cues?.phaseStarted(phase);
     _countdownFrom(phase.seconds + 1);
-    notifyListeners();
+    _changed();
   }
 
-  void start() {
+  /// Ticks once per displayed frame (up to the screen's 120 Hz), so the dial
+  /// moves fluidly while timing stays exact.
+  void start(TickerProvider vsync) {
     begin();
-    if (_timer != null || _finished) return;
-    final clock = Stopwatch()..start();
-    var last = Duration.zero;
-    _timer = Timer.periodic(_tick, (_) {
-      final now = clock.elapsed;
-      advance(now - last);
-      last = now;
-    });
+    if (_ticker != null || _finished) return;
+    _ticker = vsync.createTicker((now) {
+      final dt = now - _lastFrame;
+      _lastFrame = now;
+      if (dt <= _maxFrameGap) advance(dt);
+    })..start();
   }
 
   void advance(Duration dt) {
@@ -97,7 +107,8 @@ class SessionController extends ChangeNotifier {
       _remaining -= overflow;
     }
     if (!_finished) _countdownFrom(_index == startIndex ? before : phase.seconds + 1);
-    notifyListeners();
+    _frames.tick();
+    if (_finished || _index != startIndex || secondsLeft != before) notifyListeners();
   }
 
   void pause() => _setPaused(true);
@@ -109,7 +120,7 @@ class SessionController extends ChangeNotifier {
     if (!canAddTime || _finished) return;
     _remaining += extra;
     _phaseLength += extra;
-    notifyListeners();
+    _changed();
   }
 
   /// Jumps to the next phase.
@@ -128,7 +139,7 @@ class SessionController extends ChangeNotifier {
   void _jump(int target) {
     if (_finished) return;
     if (_enter(target)) _countdownFrom(phase.seconds + 1);
-    notifyListeners();
+    _changed();
   }
 
   /// Moves to phase [i], or finishes the session when there is none.
@@ -136,8 +147,7 @@ class SessionController extends ChangeNotifier {
     if (i >= plan.phases.length) {
       _finished = true;
       _remaining = Duration.zero;
-      _timer?.cancel();
-      _timer = null;
+      _ticker?.stop();
       cues?.finished();
       return false;
     }
@@ -158,12 +168,22 @@ class SessionController extends ChangeNotifier {
   void _setPaused(bool value) {
     if (_finished || _paused == value) return;
     _paused = value;
+    _changed();
+  }
+
+  void _changed() {
+    _frames.tick();
     notifyListeners();
   }
 
   @override
   void dispose() {
-    _timer?.cancel();
+    _ticker?.dispose();
+    _frames.dispose();
     super.dispose();
   }
+}
+
+class _FrameSignal extends ChangeNotifier {
+  void tick() => notifyListeners();
 }

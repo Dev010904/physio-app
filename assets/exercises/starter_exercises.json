@@ -1,0 +1,156 @@
+{
+  "version": 1,
+  "reviewedByPhysio": false,
+  "exercises": [
+    {
+      "id": "wall_squat",
+      "title": "Wall squat",
+      "bodyRegion": "knee",
+      "equipment": ["wall"],
+      "moveLabel": "Slide down",
+      "releaseLabel": "Slide up",
+      "steps": [
+        "Stand with your back flat against a wall, feet hip-width apart and about a foot in front of you.",
+        "Slowly slide down the wall by bending your knees, only as far as is comfortable.",
+        "Keep your knees in line with your second toe.",
+        "Hold the position and keep breathing normally.",
+        "Slide back up to standing."
+      ],
+      "prescription": { "sets": 2, "reps": 10, "holdSeconds": 5, "moveSeconds": 2, "releaseSeconds": 2, "restSeconds": 30 }
+    },
+    {
+      "id": "straight_leg_raise",
+      "title": "Straight leg raise",
+      "bodyRegion": "knee",
+      "equipment": ["mat"],
+      "moveLabel": "Lift",
+      "releaseLabel": "Lower",
+      "steps": [
+        "Lie on your back. Bend one knee with the foot flat and keep the other leg straight.",
+        "Tighten the thigh muscle of the straight leg.",
+        "Lift the straight leg until it is level with the bent knee.",
+        "Hold, then lower it slowly to the floor."
+      ],
+      "prescription": { "sets": 2, "reps": 10, "holdSeconds": 3, "moveSeconds": 2, "releaseSeconds": 2, "restSeconds": 30, "perSide": true }
+    },
+    {
+      "id": "heel_raise",
+      "title": "Heel raise",
+      "bodyRegion": "ankle",
+      "equipment": ["chair"],
+      "moveLabel": "Rise up",
+      "releaseLabel": "Lower slowly",
+      "steps": [
+        "Stand facing a wall or the back of a chair and hold it lightly for balance.",
+        "Rise up onto your toes, lifting both heels.",
+        "Pause at the top.",
+        "Lower your heels slowly back to the floor."
+      ],
+      "prescription": { "sets": 2, "reps": 15, "holdSeconds": 1, "moveSeconds": 2, "releaseSeconds": 3, "restSeconds": 30 }
+    },
+    {
+      "id": "glute_bridge",
+      "title": "Glute bridge",
+      "bodyRegion": "hip",
+      "equipment": ["mat"],
+      "moveLabel": "Lift hips",
+      "releaseLabel": "Lower",
+      "steps": [
+        "Lie on your back with your knees bent and feet flat, hip-width apart.",
+        "Squeeze your buttocks and lift your hips until your body is straight from shoulders to knees.",
+        "Hold without arching your lower back.",
+        "Lower your hips slowly."
+      ],
+      "prescription": { "sets": 2, "reps": 10, "holdSeconds": 5, "moveSeconds": 2, "releaseSeconds": 2, "restSeconds": 30 }
+    },
+    {
+      "id": "clamshell",
+      "title": "Clamshell",
+      "bodyRegion": "hip",
+      "equipment": ["mat"],
+      "moveLabel": "Open",
+      "releaseLabel": "Close",
+      "steps": [
+        "Lie on your side with your hips and knees bent and your feet together.",
+        "Keep your feet touching and lift your top knee.",
+        "Do not let your pelvis roll backwards.",
+        "Lower the knee slowly."
+      ],
+      "prescription": { "sets": 2, "reps": 12, "holdSeconds": 2, "moveSeconds": 2, "releaseSeconds": 2, "restSeconds": 30, "perSide": true }
+    },
+    {
+      "id": "quad_set",
+      "title": "Thigh tightening (quad set)",
+      "bodyRegion": "knee",
+      "equipment": [],
+      "moveLabel": "Tighten",
+      "releaseLabel": "Relax",
+      "steps": [
+        "Sit or lie with your leg straight out in front of you.",
+        "Tighten the muscle on the front of your thigh, pressing the back of your knee down.",
+        "Hold, then relax completely."
+      ],
+      "prescription": { "sets": 2, "reps": 10, "holdSeconds": 5, "moveSeconds": 1, "releaseSeconds": 1, "restSeconds": 20 }
+    },
+    {
+      "id": "cat_cow",
+      "title": "Cat–cow",
+      "bodyRegion": "back",
+      "equipment": ["mat"],
+      "moveLabel": "Round up",
+      "releaseLabel": "Dip down",
+      "steps": [
+        "Start on your hands and knees, hands under shoulders and knees under hips.",
+        "Round your back up towards the ceiling and tuck your chin.",
+        "Then let your back dip gently while you lift your head.",
+        "Move slowly and stay within a comfortable range."
+      ],
+      "prescription": { "sets": 2, "reps": 10, "holdSeconds": 0, "moveSeconds": 3, "releaseSeconds": 3, "restSeconds": 30 }
+    },
+    {
+      "id": "chin_tuck",
+      "title": "Chin tuck",
+      "bodyRegion": "neck",
+      "equipment": [],
+      "moveLabel": "Tuck",
+      "releaseLabel": "Relax",
+      "steps": [
+        "Sit or stand tall and look straight ahead.",
+        "Gently draw your chin straight back, as if making a double chin.",
+        "Keep your eyes level; do not tip your head down.",
+        "Hold, then relax."
+      ],
+      "prescription": { "sets": 2, "reps": 10, "holdSeconds": 5, "moveSeconds": 2, "releaseSeconds": 2, "restSeconds": 20 }
+    },
+    {
+      "id": "pendulum",
+      "title": "Shoulder pendulum",
+      "bodyRegion": "shoulder",
+      "equipment": ["table"],
+      "steps": [
+        "Lean forward and support yourself with your good arm on a table.",
+        "Let the other arm hang down loosely.",
+        "Gently sway your body so the arm swings in small circles.",
+        "Keep the arm and shoulder relaxed the whole time."
+      ],
+      "prescription": { "sets": 3, "durationSeconds": 30, "restSeconds": 20 }
+    },
+    {
+      "id": "calf_stretch",
+      "title": "Calf stretch",
+      "bodyRegion": "ankle",
+      "equipment": ["wall"],
+      "steps": [
+        "Stand facing a wall with both hands on it.",
+        "Step one foot back, keeping that leg straight and the heel on the floor.",
+        "Bend the front knee and lean forward until you feel a stretch in the back calf.",
+        "Hold still without bouncing."
+      ],
+      "prescription": { "sets": 3, "durationSeconds": 30, "restSeconds": 15, "perSide": true }
+    }
+  ],
+  "demoProgram": {
+    "title": "Starter program: knee and hip",
+    "exerciseIds": ["quad_set", "straight_leg_raise", "wall_squat", "glute_bridge", "heel_raise"]
+  }
+}

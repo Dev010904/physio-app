@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'app.dart';
 import 'config/env.dart';
+import 'exercises/exercise.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,8 +17,12 @@ Future<void> main() async {
     );
   }
 
+  // Bundled with the app, so it loads with no network.
+  final library = await ExerciseLibrary.load();
+  final app = PhysioApp(library: library);
+
   if (!Env.hasSentry) {
-    runApp(const PhysioApp());
+    runApp(app);
     return;
   }
 
@@ -30,6 +35,6 @@ Future<void> main() async {
       options.sendDefaultPii = false;
       options.attachScreenshot = false;
     },
-    appRunner: () => runApp(SentryWidget(child: const PhysioApp())),
+    appRunner: () => runApp(SentryWidget(child: app)),
   );
 }

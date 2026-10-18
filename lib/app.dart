@@ -2,12 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 import 'config/env.dart';
+import 'exercises/exercise.dart';
+import 'home/today_screen.dart';
 
 /// Working name until the brand is chosen (see the spec's open decisions).
 const appName = 'Physio App';
 
 class PhysioApp extends StatelessWidget {
-  const PhysioApp({super.key});
+  const PhysioApp({super.key, required this.library});
+
+  final ExerciseLibrary library;
 
   @override
   Widget build(BuildContext context) {
@@ -20,12 +24,12 @@ class PhysioApp extends StatelessWidget {
         brightness: Brightness.dark,
         useMaterial3: true,
       ),
-      home: const StatusScreen(),
+      home: TodayScreen(library: library),
     );
   }
 }
 
-/// M0 home screen: shows which services this build is wired to.
+/// Shows which services this build is wired to (reached from Today's info button).
 class StatusScreen extends StatelessWidget {
   const StatusScreen({super.key});
 
@@ -38,13 +42,11 @@ class StatusScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text(appName)),
+      appBar: AppBar(title: const Text('About this build')),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          Text('Foundation build (M0)', style: Theme.of(context).textTheme.titleLarge),
-          const SizedBox(height: 8),
-          const Text('Your home exercise program will appear here.'),
+          Text('$appName · development build', style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: 24),
           _StatusTile(label: 'Crash reporting', ok: Env.hasSentry),
           _StatusTile(label: 'Backend sync', ok: Env.hasSupabase),

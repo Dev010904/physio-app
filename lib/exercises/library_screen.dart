@@ -17,30 +17,45 @@ class LibraryScreen extends StatelessWidget {
       byRegion.putIfAbsent(e.bodyRegion, () => []).add(e);
     }
     final regions = byRegion.keys.toList()..sort();
+    final text = Theme.of(context).textTheme;
 
     return Scaffold(
-      appBar: AppBar(title: Text('Exercise library (${library.exercises.length})')),
+      appBar: AppBar(title: const Text('Library')),
       body: ListView(
+        padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
         children: [
+          Text(
+            '${library.exercises.length} exercises',
+            style: text.bodyLarge?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+          ),
           for (final region in regions) ...[
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
-              child: Text(capitalize(region), style: Theme.of(context).textTheme.titleSmall),
-            ),
-            for (final exercise in byRegion[region]!)
-              ListTile(
-                leading: Icon(bodyRegionIcon(exercise.bodyRegion)),
-                title: Text(exercise.title),
-                subtitle: Text(exercise.prescription.summary),
-                onTap: () => Navigator.of(context).push(
-                  MaterialPageRoute<void>(
-                    builder: (_) => ExercisePage(
-                      exercise: exercise,
-                      reviewedByPhysio: library.reviewedByPhysio,
+            const SizedBox(height: 20),
+            Text(capitalize(region), style: text.titleMedium),
+            const SizedBox(height: 8),
+            Card(
+              child: Column(
+                children: [
+                  for (final (i, exercise) in byRegion[region]!.indexed) ...[
+                    if (i > 0) const Divider(height: 1, indent: 72),
+                    ListTile(
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                      leading: IconBadge(region: exercise.bodyRegion),
+                      title: Text(exercise.title),
+                      subtitle: Text(exercise.prescription.summary),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => ExercisePage(
+                            exercise: exercise,
+                            reviewedByPhysio: library.reviewedByPhysio,
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
-                ),
+                  ],
+                ],
               ),
+            ),
           ],
         ],
       ),

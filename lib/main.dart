@@ -6,6 +6,7 @@ import 'app.dart';
 import 'config/env.dart';
 import 'debug/frame_stats.dart';
 import 'exercises/exercise.dart';
+import 'settings/appearance.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,7 +22,8 @@ Future<void> main() async {
 
   // Bundled with the app, so it loads with no network.
   final library = await ExerciseLibrary.load();
-  final app = PhysioApp(library: library);
+  final appearance = await AppearanceController.load();
+  final app = PhysioApp(library: library, appearance: appearance);
 
   if (!Env.hasSentry) {
     runApp(app);

@@ -5,6 +5,7 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../common/ui.dart';
 import '../exercises/exercise.dart';
+import '../theme/app_theme.dart';
 import 'cue_player.dart';
 import 'session_controller.dart';
 import 'session_plan.dart';
@@ -81,7 +82,20 @@ class _SessionPlayerScreenState extends State<SessionPlayerScreen>
           },
           child: Scaffold(
             appBar: AppBar(
-              title: Text(finished ? 'Done' : _plan.exercises[_controller.phase.exerciseIndex].title),
+              leading: finished
+                  ? null
+                  : IconButton(
+                      tooltip: 'End session',
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.maybePop(context),
+                    ),
+              centerTitle: true,
+              title: finished || _plan.exercises.length == 1
+                  ? null
+                  : Text(
+                      'Exercise ${_controller.phase.exerciseIndex + 1} of ${_plan.exercises.length}',
+                      style: Theme.of(context).textTheme.bodyLarge,
+                    ),
               actions: [
                 ValueListenableBuilder(
                   valueListenable: _cues.voiceOn,
@@ -109,26 +123,37 @@ class _PlayerView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final phase = controller.phase;
-    final plan = controller.plan;
-    final exercise = plan.exercises[phase.exerciseIndex];
-    final text = Theme.of(context).textTheme;
+    final exercise = controller.plan.exercises[phase.exerciseIndex];
+    final theme = Theme.of(context);
+    final text = theme.textTheme;
+    final muted = theme.colorScheme.onSurfaceVariant;
     final working = !controller.canAddTime;
 
     return SafeArea(
       child: Column(
         children: [
-          RepaintBoundary(
-            child: CustomPaint(
-              size: const Size.fromHeight(4),
-              painter: _BarPainter(controller, Theme.of(context).colorScheme),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: RepaintBoundary(
+              child: CustomPaint(
+                size: const Size.fromHeight(6),
+                painter: _BarPainter(controller, theme.colorScheme.primary, Brand.of(context).ringTrack),
+              ),
             ),
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-            child: Text(
-              _detailLine(phase, plan),
-              style: text.titleMedium,
-              textAlign: TextAlign.center,
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+            child: Column(
+              children: [
+                Text(
+                  exercise.title,
+                  style: text.headlineSmall?.copyWith(fontWeight: FontWeight.w600),
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                ),
+                const SizedBox(height: 4),
+                Text(_detailLine(phase), style: text.bodyLarge?.copyWith(color: muted), textAlign: TextAlign.center),
+              ],
             ),
           ),
           Expanded(
@@ -140,37 +165,38 @@ class _PlayerView extends StatelessWidget {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Wrap(
-              alignment: WrapAlignment.center,
-              spacing: 12,
-              runSpacing: 8,
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Row(
               children: [
-                if (controller.canAddTime)
-                  OutlinedButton.icon(
-                    onPressed: () => controller.addTime(const Duration(seconds: 30)),
-                    icon: const Icon(Icons.more_time),
-                    label: const Text('+30 s'),
+                Expanded(
+                  child: controller.canAddTime
+                      ? OutlinedButton.icon(
+                          onPressed: () => controller.addTime(const Duration(seconds: 30)),
+                          icon: const Icon(Icons.more_time),
+                          label: const Text('+30 s'),
+                        )
+                      : OutlinedButton.icon(
+                          onPressed: working ? controller.finishSet : null,
+                          icon: const Icon(Icons.done_all),
+                          label: Text(phase.side == null ? 'Finish set' : 'Finish side'),
+                        ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: controller.skip,
+                    icon: const Icon(Icons.skip_next),
+                    label: const Text('Skip'),
                   ),
-                if (working)
-                  OutlinedButton.icon(
-                    onPressed: controller.finishSet,
-                    icon: const Icon(Icons.done_all),
-                    label: Text(phase.side == null ? 'Finish set' : 'Finish side'),
-                  ),
-                OutlinedButton.icon(
-                  onPressed: controller.skip,
-                  icon: const Icon(Icons.skip_next),
-                  label: const Text('Skip'),
                 ),
               ],
             ),
           ),
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
             child: Text(
               '${clockLabel(controller.remainingTotal)} left in this session',
-              style: text.bodyMedium,
+              style: text.bodyMedium?.copyWith(color: muted),
             ),
           ),
         ],
@@ -178,9 +204,8 @@ class _PlayerView extends StatelessWidget {
     );
   }
 
-  static String _detailLine(Phase phase, SessionPlan plan) {
+  static String _detailLine(Phase phase) {
     final parts = <String>[
-      if (plan.exercises.length > 1) 'Exercise ${phase.exerciseIndex + 1} of ${plan.exercises.length}',
       if (phase.kind == PhaseKind.rest) 'Next: set ${phase.set + 1} of ${phase.setCount}',
       if (phase.kind != PhaseKind.rest && phase.kind != PhaseKind.transition)
         'Set ${phase.set} of ${phase.setCount}',
@@ -202,26 +227,26 @@ class _PhaseDial extends StatelessWidget {
     final phase = controller.phase;
     final colors = Theme.of(context).colorScheme;
     final text = Theme.of(context).textTheme;
+    // Move, hold and release each get their own shade so the rhythm of a rep
+    // is visible at a glance; count-ins and rests stay neutral.
     final color = switch (phase.kind) {
       PhaseKind.move => colors.primary,
-      PhaseKind.hold || PhaseKind.timed => colors.tertiary,
-      PhaseKind.release => colors.secondary,
+      PhaseKind.hold || PhaseKind.timed => colors.secondary,
+      PhaseKind.release => colors.tertiary,
       _ => colors.outline,
     };
 
     // The ring repaints every frame from controller.frames; the text inside
     // rebuilds only when the second, phase or pause state changes.
     return SizedBox.square(
-      dimension: 280,
+      dimension: 288,
       child: RepaintBoundary(
         child: CustomPaint(
-          painter: _RingPainter(controller, color: color, track: colors.surfaceContainerHighest),
+          painter: _RingPainter(controller, color: color, track: Brand.of(context).ringTrack),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(_label(phase, exercise), style: text.titleLarge, textAlign: TextAlign.center),
-              if (phase.kind == PhaseKind.transition)
-                Text(exercise.title, style: text.titleMedium, textAlign: TextAlign.center),
               AnimatedSwitcher(
                 duration: const Duration(milliseconds: 220),
                 transitionBuilder: (child, animation) => FadeTransition(
@@ -234,12 +259,12 @@ class _PhaseDial extends StatelessWidget {
                 child: Text(
                   '${controller.secondsLeft}',
                   key: ValueKey('${controller.phaseIndex}-${controller.secondsLeft}'),
-                  style: text.displayLarge?.copyWith(fontWeight: FontWeight.w600, color: color),
+                  style: text.displayLarge?.copyWith(fontSize: 76, fontWeight: FontWeight.w600, color: colors.onSurface),
                 ),
               ),
               Text(
                 controller.isPaused ? 'Paused · tap to resume' : 'Tap to pause',
-                style: text.bodySmall,
+                style: text.bodyMedium?.copyWith(color: colors.onSurfaceVariant),
               ),
             ],
           ),
@@ -270,7 +295,7 @@ class _RingPainter extends CustomPainter {
   final Color color;
   final Color track;
 
-  static const _stroke = 14.0;
+  static const _stroke = 16.0;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -290,22 +315,27 @@ class _RingPainter extends CustomPainter {
 
 /// Whole-session progress line under the app bar.
 class _BarPainter extends CustomPainter {
-  _BarPainter(this.controller, this.colors) : super(repaint: controller.frames);
+  _BarPainter(this.controller, this.color, this.track) : super(repaint: controller.frames);
 
   final SessionController controller;
-  final ColorScheme colors;
+  final Color color;
+  final Color track;
 
   @override
   void paint(Canvas canvas, Size size) {
-    canvas.drawRect(Offset.zero & size, Paint()..color = colors.surfaceContainerHighest);
-    canvas.drawRect(
-      Offset.zero & Size(size.width * controller.sessionProgress, size.height),
-      Paint()..color = colors.primary,
-    );
+    final radius = Radius.circular(size.height / 2);
+    canvas.drawRRect(RRect.fromRectAndRadius(Offset.zero & size, radius), Paint()..color = track);
+    final filled = size.width * controller.sessionProgress;
+    if (filled > 0) {
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(Offset.zero & Size(filled.clamp(size.height, size.width), size.height), radius),
+        Paint()..color = color,
+      );
+    }
   }
 
   @override
-  bool shouldRepaint(_BarPainter old) => old.colors != colors;
+  bool shouldRepaint(_BarPainter old) => old.color != color || old.track != track;
 }
 
 class _CompleteView extends StatelessWidget {
@@ -315,24 +345,32 @@ class _CompleteView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
+    final theme = Theme.of(context);
+    final text = theme.textTheme;
+    final colors = theme.colorScheme;
     final count = controller.plan.exercises.length;
-    return Center(
+    return SafeArea(
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
         child: Column(
-          mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.check_circle, size: 96, color: Theme.of(context).colorScheme.primary),
-            const SizedBox(height: 16),
-            Text('Session complete', style: text.headlineMedium),
+            const Spacer(),
+            Container(
+              width: 120,
+              height: 120,
+              decoration: BoxDecoration(color: Brand.of(context).soft, shape: BoxShape.circle),
+              child: Icon(Icons.check_rounded, size: 72, color: colors.primary),
+            ),
+            const SizedBox(height: 24),
+            Text('Session complete', style: text.headlineMedium, textAlign: TextAlign.center),
             const SizedBox(height: 8),
             Text(
               '$count ${count == 1 ? 'exercise' : 'exercises'} · '
               '${clockLabel(controller.elapsed)} of exercise',
-              style: text.bodyLarge,
+              style: text.bodyLarge?.copyWith(color: colors.onSurfaceVariant),
+              textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 24),
+            const Spacer(),
             FilledButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Done')),
           ],
         ),

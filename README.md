@@ -1,6 +1,6 @@
-# Physio App (working name)
+# PhysioSathi
 
-Offline-first physiotherapy home exercise app with on-device AI.
+Offline-first physiotherapy home exercise app with on-device AI ("sathi" means companion).
 Spec and roadmap: <https://claude.ai/code/artifact/4a4808d3-cfb5-4e04-bd01-da28f109b313>
 
 ## Run it

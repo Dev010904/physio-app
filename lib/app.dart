@@ -5,8 +5,8 @@ import 'config/env.dart';
 import 'exercises/exercise.dart';
 import 'home/today_screen.dart';
 
-/// Working name until the brand is chosen (see the spec's open decisions).
-const appName = 'Physio App';
+/// Chosen 2026-10-19 (Play Store and .com checked; trademark search still to do).
+const appName = 'PhysioSathi';
 
 class PhysioApp extends StatelessWidget {
   const PhysioApp({super.key, required this.library});

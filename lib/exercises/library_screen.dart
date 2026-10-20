@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../common/ui.dart';
+import '../tutorials/tutorial_view.dart';
 import 'exercise.dart';
 import 'exercise_page.dart';
 
@@ -36,10 +37,10 @@ class LibraryScreen extends StatelessWidget {
               child: Column(
                 children: [
                   for (final (i, exercise) in byRegion[region]!.indexed) ...[
-                    if (i > 0) const Divider(height: 1, indent: 72),
+                    if (i > 0) const Divider(height: 1, indent: 88),
                     ListTile(
                       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                      leading: IconBadge(region: exercise.bodyRegion),
+                      leading: TutorialThumb(exercise: exercise),
                       title: Text(exercise.title),
                       subtitle: Text(exercise.prescription.summary),
                       trailing: const Icon(Icons.chevron_right),

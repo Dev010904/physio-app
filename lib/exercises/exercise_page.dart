@@ -4,6 +4,8 @@ import '../common/ui.dart';
 import '../session/session_plan.dart';
 import '../session/session_player_screen.dart';
 import '../theme/app_theme.dart';
+import '../tutorials/tutorial.dart';
+import '../tutorials/tutorial_view.dart';
 import 'exercise.dart';
 
 class ExercisePage extends StatelessWidget {
@@ -19,33 +21,29 @@ class ExercisePage extends StatelessWidget {
     final text = theme.textTheme;
     final colors = theme.colorScheme;
     final brand = Brand.of(context);
+    final tutorial = tutorials[exercise.id];
 
     return Scaffold(
       appBar: AppBar(),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
         children: [
-          // Placeholder until filmed demonstrations exist (see spec: content risk).
-          Container(
-            height: 190,
-            decoration: BoxDecoration(color: brand.soft, borderRadius: BorderRadius.circular(brand.radius + 4)),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(bodyRegionIcon(exercise.bodyRegion), size: 72, color: colors.onSurface),
-                const SizedBox(height: 10),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: colors.surface.withValues(alpha: 0.7),
-                    borderRadius: BorderRadius.circular(99),
+          // Realistic footage of one rep, looping at the exercise's own tempo.
+          if (tutorial != null) ...[
+            Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 460),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(brand.radius + 4),
+                  child: ColoredBox(
+                    color: brand.soft,
+                    child: AspectRatio(aspectRatio: 1, child: TutorialLoop.forExercise(tutorial, exercise)),
                   ),
-                  child: Text('Video coming soon', style: text.bodyMedium),
                 ),
-              ],
+              ),
             ),
-          ),
-          const SizedBox(height: 20),
+            const SizedBox(height: 20),
+          ],
           Text(exercise.title, style: text.headlineMedium),
           const SizedBox(height: 8),
           Wrap(
@@ -65,6 +63,10 @@ class ExercisePage extends StatelessWidget {
               subtitle: Text('${capitalize(minutesLabel(SessionPlan.exerciseDuration(rx)))} in total'),
             ),
           ),
+          const SizedBox(height: 24),
+          Text('What it does', style: text.titleMedium),
+          const SizedBox(height: 4),
+          MuscleLegend(exercise: exercise),
           if (!reviewedByPhysio) ...[const SizedBox(height: 12), const DraftContentNotice()],
           const SizedBox(height: 24),
           Text('How to do it', style: text.titleMedium),

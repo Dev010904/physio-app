@@ -6,6 +6,8 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 import '../common/ui.dart';
 import '../exercises/exercise.dart';
 import '../theme/app_theme.dart';
+import '../tutorials/tutorial.dart';
+import '../tutorials/tutorial_view.dart';
 import 'cue_player.dart';
 import 'session_controller.dart';
 import 'session_plan.dart';
@@ -161,7 +163,41 @@ class _PlayerView extends StatelessWidget {
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
               onTap: controller.togglePause,
-              child: Center(child: _PhaseDial(controller: controller, exercise: exercise)),
+              child: LayoutBuilder(
+                builder: (context, box) {
+                  // The footage moves with the reps, so it gets the most room;
+                  // on short screens it steps aside so the timer always fits.
+                  final tutorial = tutorials[exercise.id];
+                  final showTutorial = tutorial != null && box.maxHeight >= 420;
+                  // Room left after 12 above, 16 between and 12 below.
+                  final room = box.maxHeight - (showTutorial ? 40 : 24);
+                  final tutorialSize = showTutorial ? math.min(box.maxWidth - 40, (room * 0.5).clamp(150.0, 340.0)) : 0.0;
+                  final dial = math.min(288.0, room - tutorialSize);
+                  return Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      if (showTutorial) ...[
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(Brand.of(context).radius + 4),
+                          child: ColoredBox(
+                            color: Brand.of(context).soft,
+                            child: SizedBox.square(
+                              dimension: tutorialSize,
+                              child: TutorialFrames(
+                                tutorial: tutorial,
+                                progress: () => tutorialProgress(controller, tutorial, exercise),
+                                repaint: controller.frames,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+                      _PhaseDial(controller: controller, exercise: exercise, size: dial),
+                    ],
+                  );
+                },
+              ),
             ),
           ),
           Padding(
@@ -217,10 +253,11 @@ class _PlayerView extends StatelessWidget {
 }
 
 class _PhaseDial extends StatelessWidget {
-  const _PhaseDial({required this.controller, required this.exercise});
+  const _PhaseDial({required this.controller, required this.exercise, this.size = 288});
 
   final SessionController controller;
   final Exercise exercise;
+  final double size;
 
   @override
   Widget build(BuildContext context) {
@@ -239,7 +276,7 @@ class _PhaseDial extends StatelessWidget {
     // The ring repaints every frame from controller.frames; the text inside
     // rebuilds only when the second, phase or pause state changes.
     return SizedBox.square(
-      dimension: 288,
+      dimension: size,
       child: RepaintBoundary(
         child: CustomPaint(
           painter: _RingPainter(controller, color: color, track: Brand.of(context).ringTrack),
@@ -259,7 +296,7 @@ class _PhaseDial extends StatelessWidget {
                 child: Text(
                   '${controller.secondsLeft}',
                   key: ValueKey('${controller.phaseIndex}-${controller.secondsLeft}'),
-                  style: text.displayLarge?.copyWith(fontSize: 76, fontWeight: FontWeight.w600, color: colors.onSurface),
+                  style: text.displayLarge?.copyWith(fontSize: size * 0.26, fontWeight: FontWeight.w600, color: colors.onSurface),
                 ),
               ),
               Text(
@@ -377,4 +414,24 @@ class _CompleteView extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Where the tutorial footage should be at this moment of the session:
+/// rising during "move", held at the top, lowering during "release".
+double tutorialProgress(SessionController c, Tutorial tutorial, Exercise exercise) {
+  final phase = c.phase;
+  final p = c.phaseProgress;
+  return switch (phase.kind) {
+    PhaseKind.move => Curves.easeInOut.transform(p),
+    PhaseKind.hold => 1,
+    PhaseKind.release => 1 - Curves.easeInOut.transform(p),
+    // Ease into a held stretch over its first 2.5 s; a pendulum keeps swinging.
+    PhaseKind.timed => tutorial.sway
+        ? demoProgress((c.elapsed.inMilliseconds % 3000) / 3000, tutorial)
+        : Curves.easeInOut.transform((p * phase.seconds / 2.5).clamp(0.0, 1.0)),
+    // After a held stretch, ease back out over the first 1.5 s of rest.
+    PhaseKind.rest when exercise.prescription.isTimed && !tutorial.sway =>
+      1 - Curves.easeInOut.transform((p * phase.seconds / 1.5).clamp(0.0, 1.0)),
+    _ => 0,
+  };
 }

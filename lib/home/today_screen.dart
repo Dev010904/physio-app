@@ -8,6 +8,7 @@ import '../session/session_plan.dart';
 import '../session/session_player_screen.dart';
 import '../settings/about_screen.dart';
 import '../settings/appearance.dart';
+import '../tutorials/tutorial_view.dart';
 
 /// Home: today's program with one obvious action. Until clinicians assign
 /// programs (M2) this is the bundled starter program.
@@ -86,10 +87,10 @@ class TodayScreen extends StatelessWidget {
             child: Column(
               children: [
                 for (final (i, exercise) in program.indexed) ...[
-                  if (i > 0) const Divider(height: 1, indent: 72),
+                  if (i > 0) const Divider(height: 1, indent: 88),
                   ListTile(
                     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                    leading: IconBadge(region: exercise.bodyRegion),
+                    leading: TutorialThumb(exercise: exercise),
                     title: Text(exercise.title),
                     subtitle: Text(exercise.prescription.summary),
                     trailing: Text(

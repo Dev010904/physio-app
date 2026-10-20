@@ -67,6 +67,7 @@ flutter:
   assets:
     - assets/exercises/
     - assets/sounds/
+    - assets/tutorials/
 
   # To add assets to your application, add an assets section, like this:
   # assets:

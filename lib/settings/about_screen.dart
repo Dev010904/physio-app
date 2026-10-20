@@ -3,6 +3,7 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 
 import '../branding/logo.dart';
 import '../config/env.dart';
+import '../onboarding/welcome.dart';
 import 'appearance.dart';
 
 /// Settings and build information.
@@ -49,7 +50,18 @@ class AboutScreen extends StatelessWidget {
               onSelectionChanged: (s) => appearance.set(s.first),
             ),
           ),
-          const SizedBox(height: 28),
+          const SizedBox(height: 20),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.waving_hand_outlined),
+            title: const Text('Welcome tour'),
+            subtitle: const Text('How tutorials and the glow colours work'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(builder: (context) => WelcomeScreen(onDone: () => Navigator.of(context).pop())),
+            ),
+          ),
+          const SizedBox(height: 20),
           Text('This build', style: text.titleMedium),
           const SizedBox(height: 4),
           _StatusTile(label: 'Works offline', ok: true),

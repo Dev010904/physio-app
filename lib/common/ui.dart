@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/l10n.dart';
 import '../theme/app_theme.dart';
-
-/// "about 4 min" for planning; rounds up so the estimate is never short.
-String minutesLabel(Duration d) => 'about ${(d.inSeconds / 60).ceil()} min';
 
 /// "4:05" for clocks.
 String clockLabel(Duration d) {
@@ -73,7 +71,7 @@ class DraftContentNotice extends StatelessWidget {
   @override
   Widget build(BuildContext context) => _Notice(
     icon: Icons.edit_note,
-    text: 'Draft instructions, not yet reviewed by a physiotherapist.',
+    text: context.l10n.draftNotice,
     background: Brand.of(context).soft,
     foreground: Theme.of(context).colorScheme.onSurface,
   );
@@ -87,8 +85,7 @@ class SafetyNotice extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
     return _Notice(
       icon: Icons.health_and_safety_outlined,
-      text: 'Stop and contact your physiotherapist if you feel sharp pain, numbness, '
-          'or pain above 7 out of 10.',
+      text: context.l10n.safetyNotice,
       background: colors.errorContainer,
       foreground: colors.onErrorContainer,
     );

@@ -13,17 +13,9 @@ abstract final class SafetyRules {
   static bool painNeedsStop(int pain) => pain >= stopPain;
 }
 
-/// Symptoms that end a session at once and flag the physio.
-enum RedFlag {
-  chestPain('Chest pain or tightness'),
-  numbness('Numbness, tingling or weakness'),
-  severePain('Sudden severe pain'),
-  fall('I fell, or feel faint or dizzy');
-
-  const RedFlag(this.label);
-
-  final String label;
-}
+/// Symptoms that end a session at once and flag the physio. Their wording
+/// is in lib/l10n (redFlagLabel).
+enum RedFlag { chestPain, numbness, severePain, fall }
 
 /// The patient's answer after an exercise.
 class PainAnswer {

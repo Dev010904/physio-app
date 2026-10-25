@@ -16,7 +16,19 @@
         "Hold the position and keep breathing normally.",
         "Slide back up to standing."
       ],
-      "prescription": { "sets": 2, "reps": 10, "holdSeconds": 5, "moveSeconds": 2, "releaseSeconds": 2, "restSeconds": 30 }
+      "prescription": { "sets": 2, "reps": 10, "holdSeconds": 5, "moveSeconds": 2, "releaseSeconds": 2, "restSeconds": 30 },
+      "hi": {
+        "title": "दीवार के सहारे स्क्वॉट",
+        "moveLabel": "नीचे सरकें",
+        "releaseLabel": "ऊपर सरकें",
+        "steps": [
+          "दीवार से पीठ सटाकर खड़े हों। पैर कूल्हों जितनी दूरी पर और दीवार से लगभग एक फ़ुट आगे रखें।",
+          "घुटने मोड़ते हुए धीरे-धीरे दीवार के सहारे नीचे सरकें, सिर्फ़ उतना जितना आराम से हो सके।",
+          "घुटनों को पैर की दूसरी उंगली की सीध में रखें।",
+          "इसी स्थिति में रुकें और सामान्य रूप से साँस लेते रहें।",
+          "धीरे-धीरे ऊपर सरककर खड़े हो जाएँ।"
+        ]
+      }
     },
     {
       "id": "straight_leg_raise",
@@ -31,7 +43,18 @@
         "Lift the straight leg until it is level with the bent knee.",
         "Hold, then lower it slowly to the floor."
       ],
-      "prescription": { "sets": 2, "reps": 10, "holdSeconds": 3, "moveSeconds": 2, "releaseSeconds": 2, "restSeconds": 30, "perSide": true }
+      "prescription": { "sets": 2, "reps": 10, "holdSeconds": 3, "moveSeconds": 2, "releaseSeconds": 2, "restSeconds": 30, "perSide": true },
+      "hi": {
+        "title": "सीधा पैर उठाना",
+        "moveLabel": "उठाएँ",
+        "releaseLabel": "नीचे लाएँ",
+        "steps": [
+          "पीठ के बल लेटें। एक घुटना मोड़कर पैर ज़मीन पर रखें और दूसरा पैर सीधा रखें।",
+          "सीधे पैर की जांघ की मांसपेशी को कसें।",
+          "सीधे पैर को मुड़े हुए घुटने की ऊँचाई तक उठाएँ।",
+          "रुकें, फिर धीरे-धीरे पैर ज़मीन पर रखें।"
+        ]
+      }
     },
     {
       "id": "heel_raise",
@@ -46,7 +69,18 @@
         "Pause at the top.",
         "Lower your heels slowly back to the floor."
       ],
-      "prescription": { "sets": 2, "reps": 15, "holdSeconds": 1, "moveSeconds": 2, "releaseSeconds": 3, "restSeconds": 30 }
+      "prescription": { "sets": 2, "reps": 15, "holdSeconds": 1, "moveSeconds": 2, "releaseSeconds": 3, "restSeconds": 30 },
+      "hi": {
+        "title": "एड़ी उठाना",
+        "moveLabel": "ऊपर उठें",
+        "releaseLabel": "धीरे से नीचे",
+        "steps": [
+          "दीवार या कुर्सी की पीठ के सामने खड़े हों और संतुलन के लिए उसे हल्के से पकड़ें।",
+          "दोनों एड़ियाँ उठाकर पंजों पर खड़े हों।",
+          "ऊपर एक पल रुकें।",
+          "एड़ियों को धीरे-धीरे वापस ज़मीन पर लाएँ।"
+        ]
+      }
     },
     {
       "id": "glute_bridge",
@@ -61,7 +95,18 @@
         "Hold without arching your lower back.",
         "Lower your hips slowly."
       ],
-      "prescription": { "sets": 2, "reps": 10, "holdSeconds": 5, "moveSeconds": 2, "releaseSeconds": 2, "restSeconds": 30 }
+      "prescription": { "sets": 2, "reps": 10, "holdSeconds": 5, "moveSeconds": 2, "releaseSeconds": 2, "restSeconds": 30 },
+      "hi": {
+        "title": "ग्लूट ब्रिज (कूल्हे उठाना)",
+        "moveLabel": "कूल्हे उठाएँ",
+        "releaseLabel": "नीचे लाएँ",
+        "steps": [
+          "पीठ के बल लेटें, घुटने मोड़ें और पैर ज़मीन पर कूल्हों जितनी दूरी पर रखें।",
+          "कूल्हों की मांसपेशियाँ कसें और कूल्हे इतना उठाएँ कि कंधों से घुटनों तक शरीर सीधा हो।",
+          "कमर को ज़्यादा मोड़े बिना रुकें।",
+          "कूल्हों को धीरे-धीरे नीचे लाएँ।"
+        ]
+      }
     },
     {
       "id": "clamshell",
@@ -76,7 +121,18 @@
         "Do not let your pelvis roll backwards.",
         "Lower the knee slowly."
       ],
-      "prescription": { "sets": 2, "reps": 12, "holdSeconds": 2, "moveSeconds": 2, "releaseSeconds": 2, "restSeconds": 30, "perSide": true }
+      "prescription": { "sets": 2, "reps": 12, "holdSeconds": 2, "moveSeconds": 2, "releaseSeconds": 2, "restSeconds": 30, "perSide": true },
+      "hi": {
+        "title": "क्लैमशेल",
+        "moveLabel": "खोलें",
+        "releaseLabel": "बंद करें",
+        "steps": [
+          "करवट लेकर लेटें, कूल्हे और घुटने मोड़ें और दोनों पैर साथ रखें।",
+          "पैरों को आपस में मिलाए रखते हुए ऊपर वाला घुटना उठाएँ।",
+          "कूल्हे को पीछे की ओर लुढ़कने न दें।",
+          "घुटने को धीरे-धीरे नीचे लाएँ।"
+        ]
+      }
     },
     {
       "id": "quad_set",
@@ -90,7 +146,17 @@
         "Tighten the muscle on the front of your thigh, pressing the back of your knee down.",
         "Hold, then relax completely."
       ],
-      "prescription": { "sets": 2, "reps": 10, "holdSeconds": 5, "moveSeconds": 1, "releaseSeconds": 1, "restSeconds": 20 }
+      "prescription": { "sets": 2, "reps": 10, "holdSeconds": 5, "moveSeconds": 1, "releaseSeconds": 1, "restSeconds": 20 },
+      "hi": {
+        "title": "जांघ कसना (क्वाड सेट)",
+        "moveLabel": "कसें",
+        "releaseLabel": "ढीला छोड़ें",
+        "steps": [
+          "बैठ जाएँ या लेट जाएँ और पैर सामने सीधा रखें।",
+          "जांघ के आगे की मांसपेशी कसें और घुटने के पीछे के हिस्से को नीचे दबाएँ।",
+          "रुकें, फिर पूरी तरह ढीला छोड़ दें।"
+        ]
+      }
     },
     {
       "id": "cat_cow",
@@ -105,7 +171,18 @@
         "Then let your back dip gently while you lift your head.",
         "Move slowly and stay within a comfortable range."
       ],
-      "prescription": { "sets": 2, "reps": 10, "holdSeconds": 0, "moveSeconds": 3, "releaseSeconds": 3, "restSeconds": 30 }
+      "prescription": { "sets": 2, "reps": 10, "holdSeconds": 0, "moveSeconds": 3, "releaseSeconds": 3, "restSeconds": 30 },
+      "hi": {
+        "title": "कैट–काउ",
+        "moveLabel": "पीठ गोल करें",
+        "releaseLabel": "पीठ नीचे",
+        "steps": [
+          "हाथों और घुटनों के बल आएँ: हाथ कंधों के नीचे और घुटने कूल्हों के नीचे।",
+          "पीठ को छत की ओर गोल करें और ठुड्डी अंदर करें।",
+          "फिर सिर उठाते हुए पीठ को धीरे से नीचे झुकने दें।",
+          "धीरे-धीरे और आराम की सीमा में ही करें।"
+        ]
+      }
     },
     {
       "id": "chin_tuck",
@@ -120,7 +197,18 @@
         "Keep your eyes level; do not tip your head down.",
         "Hold, then relax."
       ],
-      "prescription": { "sets": 2, "reps": 10, "holdSeconds": 5, "moveSeconds": 2, "releaseSeconds": 2, "restSeconds": 20 }
+      "prescription": { "sets": 2, "reps": 10, "holdSeconds": 5, "moveSeconds": 2, "releaseSeconds": 2, "restSeconds": 20 },
+      "hi": {
+        "title": "ठुड्डी अंदर करना (चिन टक)",
+        "moveLabel": "अंदर करें",
+        "releaseLabel": "ढीला छोड़ें",
+        "steps": [
+          "सीधे बैठें या खड़े हों और सामने देखें।",
+          "ठुड्डी को धीरे से सीधा पीछे खींचें, जैसे डबल चिन बना रहे हों।",
+          "आँखें सीधी रखें; सिर नीचे न झुकाएँ।",
+          "रुकें, फिर ढीला छोड़ें।"
+        ]
+      }
     },
     {
       "id": "pendulum",
@@ -133,7 +221,16 @@
         "Gently sway your body so the arm swings in small circles.",
         "Keep the arm and shoulder relaxed the whole time."
       ],
-      "prescription": { "sets": 3, "durationSeconds": 30, "restSeconds": 20 }
+      "prescription": { "sets": 3, "durationSeconds": 30, "restSeconds": 20 },
+      "hi": {
+        "title": "कंधे का पेंडुलम",
+        "steps": [
+          "आगे झुकें और अच्छे हाथ से मेज़ का सहारा लें।",
+          "दूसरे हाथ को ढीला नीचे लटकने दें।",
+          "शरीर को हल्का हिलाएँ ताकि हाथ छोटे-छोटे गोलों में झूले।",
+          "पूरे समय हाथ और कंधे को ढीला रखें।"
+        ]
+      }
     },
     {
       "id": "calf_stretch",
@@ -146,11 +243,21 @@
         "Bend the front knee and lean forward until you feel a stretch in the back calf.",
         "Hold still without bouncing."
       ],
-      "prescription": { "sets": 3, "durationSeconds": 30, "restSeconds": 15, "perSide": true }
+      "prescription": { "sets": 3, "durationSeconds": 30, "restSeconds": 15, "perSide": true },
+      "hi": {
+        "title": "पिंडली का खिंचाव",
+        "steps": [
+          "दीवार की ओर मुँह करके खड़े हों और दोनों हाथ दीवार पर रखें।",
+          "एक पैर पीछे ले जाएँ, उसे सीधा रखें और एड़ी ज़मीन पर टिकी रहे।",
+          "आगे वाला घुटना मोड़ें और आगे झुकें, जब तक पीछे वाली पिंडली में खिंचाव महसूस न हो।",
+          "झटके दिए बिना स्थिर रहें।"
+        ]
+      }
     }
   ],
   "demoProgram": {
     "title": "Starter program: knee and hip",
-    "exerciseIds": ["quad_set", "straight_leg_raise", "wall_squat", "glute_bridge", "heel_raise"]
+    "exerciseIds": ["quad_set", "straight_leg_raise", "wall_squat", "glute_bridge", "heel_raise"],
+    "titleHi": "शुरुआती कार्यक्रम: घुटना और कूल्हा"
   }
 }

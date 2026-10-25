@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../l10n/l10n.dart';
 import '../program/program_controller.dart';
 import '../session/session_log.dart';
 
@@ -19,7 +20,7 @@ class SafetyStopScreen extends StatelessWidget {
   Future<void> _call(BuildContext context, String number) async {
     final ok = await launchUrl(Uri(scheme: 'tel', path: number.replaceAll(' ', '')));
     if (!ok && context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Could not open the phone app. Please dial $number.')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.cannotDial(number))));
     }
   }
 
@@ -30,14 +31,15 @@ class SafetyStopScreen extends StatelessWidget {
     final text = theme.textTheme;
     final urgent = flag == RedFlag.chestPain || flag == RedFlag.fall;
     final physioPhone = link?.phone;
-    final physioName = link?.clinicianName ?? link?.clinicName ?? 'your physio';
+    final l = context.l10n;
+    final physioName = link?.clinicianName ?? link?.clinicName ?? l.yourPhysio;
 
     final advice = switch (flag) {
-      RedFlag.chestPain => 'Chest pain can be serious. Sit down and call emergency services now.',
-      RedFlag.fall => 'Stay still and sit or lie down. If you hit your head, feel faint, or cannot get up, call emergency services.',
-      RedFlag.numbness => 'Stop and rest. Tell your physio about the numbness or tingling before you exercise again.',
-      RedFlag.severePain => 'Stop and rest the area. Do not continue this exercise until your physio has checked it.',
-      null => 'Pain of ${pain ?? SafetyRules.stopPain} out of 10 is too much. Rest now, and check with your physio before your next session.',
+      RedFlag.chestPain => l.adviceChest,
+      RedFlag.fall => l.adviceFall,
+      RedFlag.numbness => l.adviceNumbness,
+      RedFlag.severePain => l.adviceSeverePain,
+      null => l.advicePain(pain ?? SafetyRules.stopPain),
     };
 
     return PopScope(
@@ -50,7 +52,7 @@ class SafetyStopScreen extends StatelessWidget {
               Icon(Icons.health_and_safety, size: 88, color: colors.onErrorContainer),
               const SizedBox(height: 16),
               Text(
-                'Stop exercising now',
+                l.stopNow,
                 style: text.headlineMedium?.copyWith(color: colors.onErrorContainer),
                 textAlign: TextAlign.center,
               ),
@@ -62,27 +64,25 @@ class SafetyStopScreen extends StatelessWidget {
                   style: FilledButton.styleFrom(backgroundColor: colors.error, foregroundColor: colors.onError),
                   onPressed: () => _call(context, emergencyNumber),
                   icon: const Icon(Icons.emergency, size: 28),
-                  label: const Text('Call emergency 112'),
+                  label: Text(l.callEmergency),
                 ),
               if (physioPhone != null) ...[
                 const SizedBox(height: 12),
                 FilledButton.icon(
                   onPressed: () => _call(context, physioPhone),
                   icon: const Icon(Icons.call, size: 26),
-                  label: Text('Call $physioName'),
+                  label: Text(l.callPhysio(physioName)),
                 ),
               ],
               const SizedBox(height: 12),
               OutlinedButton(
                 style: OutlinedButton.styleFrom(foregroundColor: colors.onErrorContainer),
                 onPressed: () => Navigator.of(context).pop(),
-                child: const Text("I'm OK, close"),
+                child: Text(l.imOk),
               ),
               const SizedBox(height: 20),
               Text(
-                link == null
-                    ? 'This app is not linked to a physio, so nobody has been told. Please contact your doctor or physio.'
-                    : '$physioName will see this in your log as soon as your phone is online.',
+                link == null ? l.notLinkedNobodyTold : l.physioWillSee(physioName),
                 style: text.bodyMedium?.copyWith(color: colors.onErrorContainer),
                 textAlign: TextAlign.center,
               ),

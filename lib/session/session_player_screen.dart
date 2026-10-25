@@ -5,6 +5,7 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../common/ui.dart';
 import '../exercises/exercise.dart';
+import '../l10n/l10n.dart';
 import '../program/program.dart';
 import '../program/program_controller.dart';
 import '../safety/safety_screen.dart';
@@ -36,7 +37,7 @@ class _SessionPlayerScreenState extends State<SessionPlayerScreen>
     with SingleTickerProviderStateMixin {
   late final List<Exercise> _exercises = [for (final e in widget.entries) e.exercise];
   late final SessionPlan _plan = SessionPlan.build(_exercises);
-  late final CuePlayer _cues = CuePlayer(_exercises);
+  late final CuePlayer _cues = CuePlayer(_exercises, AppLocalizations.of(context));
   late final SessionController _controller = SessionController(_plan, cues: _cues);
   late final SessionLogger _log = SessionLogger(
     store: widget.programs.store,
@@ -163,11 +164,11 @@ class _SessionPlayerScreenState extends State<SessionPlayerScreen>
     final leave = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('End this session?'),
-        content: const Text('What you have done so far is saved.'),
+        title: Text(context.l10n.endSessionQuestion),
+        content: Text(context.l10n.progressSaved),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Keep going')),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('End session')),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(context.l10n.keepGoing)),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: Text(context.l10n.endSession)),
         ],
       ),
     );
@@ -196,7 +197,7 @@ class _SessionPlayerScreenState extends State<SessionPlayerScreen>
               leading: finished
                   ? null
                   : IconButton(
-                      tooltip: 'End session',
+                      tooltip: context.l10n.endSession,
                       icon: const Icon(Icons.close),
                       onPressed: () => Navigator.maybePop(context),
                     ),
@@ -205,7 +206,7 @@ class _SessionPlayerScreenState extends State<SessionPlayerScreen>
               title: finished || _plan.exercises.length == 1
                   ? null
                   : Text(
-                      'Exercise ${_controller.phase.exerciseIndex + 1} of ${_plan.exercises.length}',
+                      context.l10n.exerciseXofY(_controller.phase.exerciseIndex + 1, _plan.exercises.length),
                       style: Theme.of(context).textTheme.bodyLarge,
                     ),
               actions: [
@@ -214,12 +215,12 @@ class _SessionPlayerScreenState extends State<SessionPlayerScreen>
                     style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
                     onPressed: _onStop,
                     icon: const Icon(Icons.pan_tool_outlined),
-                    label: const Text('Stop'),
+                    label: Text(context.l10n.stop),
                   ),
                 ValueListenableBuilder(
                   valueListenable: _cues.voiceOn,
                   builder: (context, on, _) => IconButton(
-                    tooltip: on ? 'Turn voice off' : 'Turn voice on',
+                    tooltip: on ? context.l10n.voiceOff : context.l10n.voiceOn,
                     icon: Icon(on ? Icons.record_voice_over : Icons.voice_over_off),
                     onPressed: () => _cues.voiceOn.value = !on,
                   ),
@@ -249,6 +250,7 @@ class _PlayerView extends StatelessWidget {
     final text = theme.textTheme;
     final muted = theme.colorScheme.onSurfaceVariant;
     final working = !controller.canAddTime;
+    final l = context.l10n;
 
     return SafeArea(
       child: Column(
@@ -273,7 +275,7 @@ class _PlayerView extends StatelessWidget {
                   maxLines: 2,
                 ),
                 const SizedBox(height: 4),
-                Text(_detailLine(phase), style: text.bodyLarge?.copyWith(color: muted), textAlign: TextAlign.center),
+                Text(_detailLine(l, phase), style: text.bodyLarge?.copyWith(color: muted), textAlign: TextAlign.center),
               ],
             ),
           ),
@@ -328,12 +330,12 @@ class _PlayerView extends StatelessWidget {
                       ? OutlinedButton.icon(
                           onPressed: () => controller.addTime(const Duration(seconds: 30)),
                           icon: const Icon(Icons.more_time),
-                          label: const Text('+30 s'),
+                          label: Text(l.addTime30),
                         )
                       : OutlinedButton.icon(
                           onPressed: working ? controller.finishSet : null,
                           icon: const Icon(Icons.done_all),
-                          label: Text(phase.side == null ? 'Finish set' : 'Finish side'),
+                          label: Text(phase.side == null ? l.finishSet : l.finishSide),
                         ),
                 ),
                 const SizedBox(width: 12),
@@ -341,7 +343,7 @@ class _PlayerView extends StatelessWidget {
                   child: OutlinedButton.icon(
                     onPressed: controller.skip,
                     icon: const Icon(Icons.skip_next),
-                    label: const Text('Skip'),
+                    label: Text(l.skip),
                   ),
                 ),
               ],
@@ -350,7 +352,7 @@ class _PlayerView extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
             child: Text(
-              '${clockLabel(controller.remainingTotal)} left in this session',
+              l.timeLeft(clockLabel(controller.remainingTotal)),
               style: text.bodyMedium?.copyWith(color: muted),
             ),
           ),
@@ -359,13 +361,12 @@ class _PlayerView extends StatelessWidget {
     );
   }
 
-  static String _detailLine(Phase phase) {
+  static String _detailLine(AppLocalizations l, Phase phase) {
     final parts = <String>[
-      if (phase.kind == PhaseKind.rest) 'Next: set ${phase.set + 1} of ${phase.setCount}',
-      if (phase.kind != PhaseKind.rest && phase.kind != PhaseKind.transition)
-        'Set ${phase.set} of ${phase.setCount}',
-      if (phase.rep != null) 'Rep ${phase.rep} of ${phase.repCount}',
-      if (phase.side != null) phase.side == Side.left ? 'Left side' : 'Right side',
+      if (phase.kind == PhaseKind.rest) l.nextSet(phase.set + 1, phase.setCount),
+      if (phase.kind != PhaseKind.rest && phase.kind != PhaseKind.transition) l.setXofY(phase.set, phase.setCount),
+      if (phase.rep != null) l.repXofY(phase.rep!, phase.repCount!),
+      if (phase.side != null) phase.side == Side.left ? l.leftSide : l.rightSide,
     ];
     return parts.join(' · ');
   }
@@ -402,7 +403,7 @@ class _PhaseDial extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(_label(phase, exercise), style: text.titleLarge, textAlign: TextAlign.center),
+              Text(_label(context.l10n, phase, exercise), style: text.titleLarge, textAlign: TextAlign.center),
               AnimatedSwitcher(
                 duration: const Duration(milliseconds: 220),
                 transitionBuilder: (child, animation) => FadeTransition(
@@ -419,7 +420,7 @@ class _PhaseDial extends StatelessWidget {
                 ),
               ),
               Text(
-                controller.isPaused ? 'Paused · tap to resume' : 'Tap to pause',
+                controller.isPaused ? context.l10n.pausedTapResume : context.l10n.tapToPause,
                 style: text.bodyMedium?.copyWith(color: colors.onSurfaceVariant),
               ),
             ],
@@ -429,16 +430,14 @@ class _PhaseDial extends StatelessWidget {
     );
   }
 
-  static String _label(Phase phase, Exercise exercise) => switch (phase.kind) {
-    PhaseKind.prepare => phase.side == null
-        ? 'Get ready'
-        : (phase.side == Side.left ? 'Left side' : 'Right side'),
+  static String _label(AppLocalizations l, Phase phase, Exercise exercise) => switch (phase.kind) {
+    PhaseKind.prepare => phase.side == null ? l.getReady : (phase.side == Side.left ? l.leftSide : l.rightSide),
     PhaseKind.move => exercise.moveLabel,
-    PhaseKind.hold => 'Hold',
+    PhaseKind.hold => l.hold,
     PhaseKind.release => exercise.releaseLabel,
-    PhaseKind.timed => 'Keep going',
-    PhaseKind.rest => 'Rest',
-    PhaseKind.transition => 'Up next',
+    PhaseKind.timed => l.keepGoing,
+    PhaseKind.rest => l.rest,
+    PhaseKind.transition => l.upNext,
   };
 }
 
@@ -521,20 +520,19 @@ class _CompleteView extends StatelessWidget {
               child: Icon(Icons.check_rounded, size: 72, color: colors.primary),
             ),
             const SizedBox(height: 24),
-            Text('Session complete', style: text.headlineMedium, textAlign: TextAlign.center),
+            Text(context.l10n.sessionComplete, style: text.headlineMedium, textAlign: TextAlign.center),
             const SizedBox(height: 8),
             Text(
-              '$count ${count == 1 ? 'exercise' : 'exercises'} · '
-              '${clockLabel(controller.elapsed)} of exercise',
+              context.l10n.completeSummary(count, clockLabel(controller.elapsed)),
               style: text.bodyLarge?.copyWith(color: colors.onSurfaceVariant),
               textAlign: TextAlign.center,
             ),
             const Spacer(),
-            Text('How was it today?', style: text.titleMedium, textAlign: TextAlign.center),
+            Text(context.l10n.howWasIt, style: text.titleMedium, textAlign: TextAlign.center),
             const SizedBox(height: 12),
             FeedbackButtons(onChosen: onFeedback),
             const SizedBox(height: 12),
-            TextButton(onPressed: () => onFeedback(null), child: const Text('Skip')),
+            TextButton(onPressed: () => onFeedback(null), child: Text(context.l10n.skip)),
           ],
         ),
       ),

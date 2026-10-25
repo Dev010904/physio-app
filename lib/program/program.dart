@@ -23,6 +23,9 @@ class ProgramEntry {
   /// The physio's note for this exercise.
   final String? note;
 
+  ProgramEntry inLanguage(String lang) =>
+      ProgramEntry(exercise: exercise.inLanguage(lang), itemId: itemId, days: days, note: note);
+
   Map<String, dynamic> toJson() => {
     'exercise': exercise.toJson(),
     'itemId': ?itemId,
@@ -38,7 +41,7 @@ class Program {
 
   /// The starter program from the bundled library, scheduled every day.
   factory Program.starter(ExerciseLibrary library) => Program(
-    title: library.demoProgramTitle,
+    title: library.starterTitle,
     entries: [for (final e in library.demoProgram) ProgramEntry(exercise: e)],
   );
 
@@ -54,7 +57,7 @@ class Program {
 
   /// Builds a program from the server's latest `programs` row with its
   /// `program_items` and their `exercises` embedded.
-  factory Program.fromServer(Map<String, dynamic> row, {String language = 'en'}) {
+  factory Program.fromServer(Map<String, dynamic> row) {
     final items = [...(row['program_items'] as List).cast<Map<String, dynamic>>()]
       ..sort((a, b) => (a['position'] as int).compareTo(b['position'] as int));
     return Program(
@@ -62,7 +65,7 @@ class Program {
       version: row['version'] as int,
       title: 'Your program',
       notes: row['clinician_notes'] as String?,
-      entries: [for (final item in items) _entryFromServer(item, language)],
+      entries: [for (final item in items) _entryFromServer(item)],
     );
   }
 
@@ -78,6 +81,15 @@ class Program {
   bool get fromClinic => id != null;
 
   List<Exercise> get exercises => [for (final e in entries) e.exercise];
+
+  /// The same program with its exercises answering in [lang].
+  Program inLanguage(String lang) => Program(
+    id: id,
+    version: version,
+    title: title,
+    notes: notes,
+    entries: [for (final e in entries) e.inLanguage(lang)],
+  );
 
   /// Entries scheduled on [day]'s weekday.
   List<ProgramEntry> on(DateTime day) => [for (final e in entries) if (e.days.contains(day.weekday)) e];
@@ -100,16 +112,10 @@ class Program {
   };
 }
 
-ProgramEntry _entryFromServer(Map<String, dynamic> item, String language) {
+ProgramEntry _entryFromServer(Map<String, dynamic> item) {
   final ex = item['exercises'] as Map<String, dynamic>;
-  final hindi = language == 'hi';
-  String text(String key) => (hindi ? ex['${key}_hi'] as String? : null) ?? ex['${key}_en'] as String;
-  String? label(String key) => (hindi ? ex['${key}_hi'] as String? : null) ?? ex['${key}_en'] as String?;
-  List<String> list(String key) {
-    final hi = (ex['${key}_hi'] as List?)?.cast<String>() ?? const [];
-    return hindi && hi.isNotEmpty ? hi : (ex['${key}_en'] as List).cast<String>();
-  }
-
+  final stepsHi = (ex['steps_hi'] as List?)?.cast<String>() ?? const [];
+  final hasHindi = ex['title_hi'] != null || stepsHi.isNotEmpty;
   final reps = item['reps'] as int?;
   return ProgramEntry(
     itemId: item['id'] as String,
@@ -118,12 +124,20 @@ ProgramEntry _entryFromServer(Map<String, dynamic> item, String language) {
     exercise: Exercise(
       // The slug is the bundled exercise id, so tutorials still match.
       id: ex['slug'] as String? ?? ex['id'] as String,
-      title: text('title'),
+      title: ex['title_en'] as String,
       bodyRegion: ex['body_region'] as String? ?? 'other',
       equipment: (ex['equipment'] as List? ?? const []).cast<String>(),
-      steps: list('steps'),
-      moveLabel: label('move_label') ?? 'Move',
-      releaseLabel: label('release_label') ?? 'Return',
+      steps: (ex['steps_en'] as List).cast<String>(),
+      moveLabel: ex['move_label_en'] as String? ?? 'Move',
+      releaseLabel: ex['release_label_en'] as String? ?? 'Return',
+      hindi: hasHindi
+          ? ExerciseText(
+              title: ex['title_hi'] as String?,
+              steps: stepsHi,
+              moveLabel: ex['move_label_hi'] as String?,
+              releaseLabel: ex['release_label_hi'] as String?,
+            )
+          : null,
       prescription: Prescription(
         sets: item['sets'] as int,
         reps: reps,

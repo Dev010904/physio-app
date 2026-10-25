@@ -9,7 +9,7 @@ import 'package:timezone/timezone.dart' as tz;
 abstract interface class ReminderScheduler {
   /// Asks for permission to show notifications; true when allowed.
   Future<bool> requestPermission();
-  Future<void> scheduleDaily(TimeOfDay time);
+  Future<void> scheduleDaily(TimeOfDay time, {required String title, required String body});
   Future<void> cancel();
 }
 
@@ -39,14 +39,14 @@ class LocalNotificationScheduler implements ReminderScheduler {
   Future<bool> requestPermission() async => await _android?.requestNotificationsPermission() ?? true;
 
   @override
-  Future<void> scheduleDaily(TimeOfDay time) async {
+  Future<void> scheduleDaily(TimeOfDay time, {required String title, required String body}) async {
     final now = tz.TZDateTime.now(tz.local);
     var at = tz.TZDateTime(tz.local, now.year, now.month, now.day, time.hour, time.minute);
     if (!at.isAfter(now)) at = at.add(const Duration(days: 1));
     await _plugin.zonedSchedule(
       id: _id,
-      title: 'Time for your exercises',
-      body: 'A few minutes now keeps your recovery on track.',
+      title: title,
+      body: body,
       scheduledDate: at,
       notificationDetails: const NotificationDetails(
         android: AndroidNotificationDetails(
@@ -71,7 +71,7 @@ class NoReminderScheduler implements ReminderScheduler {
   @override
   Future<bool> requestPermission() async => true;
   @override
-  Future<void> scheduleDaily(TimeOfDay time) async {}
+  Future<void> scheduleDaily(TimeOfDay time, {required String title, required String body}) async {}
   @override
   Future<void> cancel() async {}
 }
@@ -110,9 +110,9 @@ class ReminderController extends ValueNotifier<ReminderSettings> {
 
   /// Turns the reminder on at [time]. Returns false when the phone does not
   /// allow notifications, leaving it off.
-  Future<bool> enable(TimeOfDay time) async {
+  Future<bool> enable(TimeOfDay time, {required String title, required String body}) async {
     if (!await _scheduler.requestPermission()) return false;
-    await _scheduler.scheduleDaily(time);
+    await _scheduler.scheduleDaily(time, title: title, body: body);
     value = ReminderSettings(enabled: true, time: time);
     await _save();
     return true;

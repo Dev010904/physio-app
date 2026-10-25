@@ -63,17 +63,49 @@ class Prescription {
   }
 }
 
+/// An exercise's text in a second language. Anything left out falls back
+/// to English.
+class ExerciseText {
+  const ExerciseText({this.title, this.steps = const [], this.moveLabel, this.releaseLabel});
+
+  factory ExerciseText.fromJson(Map<String, dynamic> json) => ExerciseText(
+    title: json['title'] as String?,
+    steps: (json['steps'] as List? ?? const []).cast<String>(),
+    moveLabel: json['moveLabel'] as String?,
+    releaseLabel: json['releaseLabel'] as String?,
+  );
+
+  final String? title;
+  final List<String> steps;
+  final String? moveLabel;
+  final String? releaseLabel;
+
+  Map<String, dynamic> toJson() => {
+    'title': ?title,
+    'steps': steps,
+    'moveLabel': ?moveLabel,
+    'releaseLabel': ?releaseLabel,
+  };
+}
+
+/// An exercise with its text in English and, where written, Hindi. The text
+/// getters answer in [language]; [inLanguage] switches without a download.
 class Exercise {
   const Exercise({
     required this.id,
-    required this.title,
+    required String title,
     required this.bodyRegion,
-    required this.steps,
+    required List<String> steps,
     required this.prescription,
     this.equipment = const [],
-    this.moveLabel = 'Move',
-    this.releaseLabel = 'Return',
-  });
+    String moveLabel = 'Move',
+    String releaseLabel = 'Return',
+    this.hindi,
+    this.language = 'en',
+  }) : titleEn = title,
+       stepsEn = steps,
+       moveLabelEn = moveLabel,
+       releaseLabelEn = releaseLabel;
 
   factory Exercise.fromJson(Map<String, dynamic> json) => Exercise(
     id: json['id'] as String,
@@ -84,29 +116,76 @@ class Exercise {
     moveLabel: json['moveLabel'] as String? ?? 'Move',
     releaseLabel: json['releaseLabel'] as String? ?? 'Return',
     prescription: Prescription.fromJson(json['prescription'] as Map<String, dynamic>),
+    hindi: json['hi'] == null ? null : ExerciseText.fromJson(json['hi'] as Map<String, dynamic>),
   );
 
   Map<String, dynamic> toJson() => {
     'id': id,
-    'title': title,
+    'title': titleEn,
     'bodyRegion': bodyRegion,
     'equipment': equipment,
-    'steps': steps,
-    'moveLabel': moveLabel,
-    'releaseLabel': releaseLabel,
+    'steps': stepsEn,
+    'moveLabel': moveLabelEn,
+    'releaseLabel': releaseLabelEn,
     'prescription': prescription.toJson(),
+    'hi': ?hindi?.toJson(),
   };
 
   final String id;
-  final String title;
   final String bodyRegion;
   final List<String> equipment;
-  final List<String> steps;
-  final String moveLabel;
-  final String releaseLabel;
 
   /// Starter dose. From M2 on, the clinician's program overrides it.
   final Prescription prescription;
+
+  /// Hindi text, when it has been written.
+  final ExerciseText? hindi;
+
+  /// 'en' or 'hi': the language the text getters answer in.
+  final String language;
+
+  /// The English text, always present.
+  final String titleEn;
+  final List<String> stepsEn;
+  final String moveLabelEn;
+  final String releaseLabelEn;
+
+  ExerciseText? get _text => language == 'hi' ? hindi : null;
+
+  String get title => _text?.title ?? titleEn;
+  List<String> get steps => (_text?.steps.isNotEmpty ?? false) ? _text!.steps : stepsEn;
+  String get moveLabel => _text?.moveLabel ?? moveLabelEn;
+  String get releaseLabel => _text?.releaseLabel ?? releaseLabelEn;
+
+  /// The same exercise, answering in [lang].
+  Exercise inLanguage(String lang) => lang == language
+      ? this
+      : Exercise(
+          id: id,
+          title: titleEn,
+          bodyRegion: bodyRegion,
+          steps: stepsEn,
+          prescription: prescription,
+          equipment: equipment,
+          moveLabel: moveLabelEn,
+          releaseLabel: releaseLabelEn,
+          hindi: hindi,
+          language: lang,
+        );
+
+  /// The same exercise with another dose.
+  Exercise withPrescription(Prescription rx) => Exercise(
+    id: id,
+    title: titleEn,
+    bodyRegion: bodyRegion,
+    steps: stepsEn,
+    prescription: rx,
+    equipment: equipment,
+    moveLabel: moveLabelEn,
+    releaseLabel: releaseLabelEn,
+    hindi: hindi,
+    language: language,
+  );
 }
 
 /// The bundled starter library. It ships inside the app so it works offline.
@@ -116,6 +195,8 @@ class ExerciseLibrary {
     required this.reviewedByPhysio,
     required this.demoProgramTitle,
     required this.demoProgram,
+    this.demoProgramTitleHi,
+    this.language = 'en',
   });
 
   factory ExerciseLibrary.fromJson(String source) {
@@ -129,6 +210,7 @@ class ExerciseLibrary {
       exercises: exercises,
       reviewedByPhysio: json['reviewedByPhysio'] as bool? ?? false,
       demoProgramTitle: demo['title'] as String,
+      demoProgramTitleHi: demo['titleHi'] as String?,
       demoProgram: [
         for (final id in (demo['exerciseIds'] as List).cast<String>())
           byId[id] ?? (throw FormatException('Demo program lists unknown exercise "$id"')),
@@ -144,5 +226,22 @@ class ExerciseLibrary {
   final List<Exercise> exercises;
   final bool reviewedByPhysio;
   final String demoProgramTitle;
+  final String? demoProgramTitleHi;
   final List<Exercise> demoProgram;
+  final String language;
+
+  /// The starter program's name in this library's language.
+  String get starterTitle => language == 'hi' ? demoProgramTitleHi ?? demoProgramTitle : demoProgramTitle;
+
+  /// The same library, answering in [lang].
+  ExerciseLibrary inLanguage(String lang) => lang == language
+      ? this
+      : ExerciseLibrary(
+          exercises: [for (final e in exercises) e.inLanguage(lang)],
+          reviewedByPhysio: reviewedByPhysio,
+          demoProgramTitle: demoProgramTitle,
+          demoProgramTitleHi: demoProgramTitleHi,
+          demoProgram: [for (final e in demoProgram) e.inLanguage(lang)],
+          language: lang,
+        );
 }

@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 
 import '../exercises/exercise.dart';
+import '../l10n/l10n.dart';
 import 'session_controller.dart';
 import 'session_plan.dart';
 
@@ -10,9 +11,12 @@ import 'session_plan.dart';
 /// the release half), and the voice calls holds, rests and the last 3 seconds.
 /// Uses the phone's own text-to-speech, so it works offline.
 class CuePlayer implements SessionCues {
-  CuePlayer(this.exercises);
+  CuePlayer(this.exercises, this.l10n);
 
   final List<Exercise> exercises;
+
+  /// Words to speak, in the app's language.
+  final AppLocalizations l10n;
   final voiceOn = ValueNotifier(true);
 
   final _tts = FlutterTts();
@@ -39,8 +43,12 @@ class CuePlayer implements SessionCues {
       _players[name] = player;
     }
     try {
-      final hasIndianEnglish = await _tts.isLanguageAvailable('en-IN') == true;
-      await _tts.setLanguage(hasIndianEnglish ? 'en-IN' : 'en-US');
+      if (l10n.localeName == 'hi' && await _tts.isLanguageAvailable('hi-IN') == true) {
+        await _tts.setLanguage('hi-IN');
+      } else {
+        final hasIndianEnglish = await _tts.isLanguageAvailable('en-IN') == true;
+        await _tts.setLanguage(hasIndianEnglish ? 'en-IN' : 'en-US');
+      }
       await _tts.setSpeechRate(0.5);
       await _tts.awaitSpeakCompletion(false);
       // Spoken like navigation prompts: other audio dips briefly, then returns.
@@ -56,21 +64,21 @@ class CuePlayer implements SessionCues {
     switch (phase.kind) {
       case PhaseKind.prepare:
         final firstOfExercise = phase.set == 1 && phase.side != Side.right;
-        final what = phase.side == null ? 'Get ready' : '${_sideName(phase.side!)} side';
+        final what = phase.side == null ? l10n.getReady : (phase.side == Side.left ? l10n.leftSide : l10n.rightSide);
         _say(firstOfExercise ? '${exercise.title}. $what' : what);
       case PhaseKind.move:
         _tone('move');
       case PhaseKind.hold:
-        if (phase.seconds >= 3) _say('Hold');
+        if (phase.seconds >= 3) _say(l10n.hold);
       case PhaseKind.release:
         _tone('release');
       case PhaseKind.timed:
         _tone('move');
-        _say('Start');
+        _say(l10n.cueStart);
       case PhaseKind.rest:
-        _say('Rest');
+        _say(l10n.rest);
       case PhaseKind.transition:
-        _say('Next, ${exercise.title}');
+        _say(l10n.cueNextExercise(exercise.title));
     }
   }
 
@@ -85,7 +93,7 @@ class CuePlayer implements SessionCues {
   @override
   void finished() {
     _tone('done');
-    _say('Session complete. Well done.');
+    _say(l10n.cueSessionDone);
   }
 
   void _say(String text) {
@@ -98,8 +106,6 @@ class CuePlayer implements SessionCues {
         ?.play(AssetSource('sounds/$name.wav'), mode: PlayerMode.lowLatency)
         .catchError((Object e) => debugPrint('tone $name failed: $e'));
   }
-
-  static String _sideName(Side side) => side == Side.left ? 'Left' : 'Right';
 
   Future<void> dispose() async {
     voiceOn.dispose();

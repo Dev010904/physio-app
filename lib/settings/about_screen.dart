@@ -3,19 +3,28 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 
 import '../branding/logo.dart';
 import '../config/env.dart';
+import '../l10n/l10n.dart';
 import '../link/link_screen.dart';
 import '../onboarding/welcome.dart';
 import '../program/program_controller.dart';
 import '../reminders/reminders.dart';
 import 'appearance.dart';
+import 'language.dart';
 
 /// Settings and build information.
 class AboutScreen extends StatelessWidget {
-  const AboutScreen({super.key, required this.appearance, required this.programs, required this.reminders});
+  const AboutScreen({
+    super.key,
+    required this.appearance,
+    required this.programs,
+    required this.reminders,
+    required this.language,
+  });
 
   final AppearanceController appearance;
   final ProgramController programs;
   final ReminderController reminders;
+  final LanguageController language;
 
   Future<void> _sendTestEvent(BuildContext context) async {
     final id = await Sentry.captureException(StateError('Test event: Sentry wiring check'));
@@ -26,8 +35,9 @@ class AboutScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
+    final l = context.l10n;
     return Scaffold(
-      appBar: AppBar(title: const Text('Settings')),
+      appBar: AppBar(title: Text(l.settings)),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
         children: [
@@ -35,28 +45,44 @@ class AboutScreen extends StatelessWidget {
           const SizedBox(height: 8),
           Center(
             child: Text(
-              'Your physio companion',
+              l.appTagline,
               style: text.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
             ),
           ),
           const SizedBox(height: 28),
-          Text('My physio', style: text.titleMedium),
+          Text(l.myPhysio, style: text.titleMedium),
           const SizedBox(height: 4),
           ListenableBuilder(listenable: programs, builder: (context, _) => _PhysioSection(programs: programs)),
           const SizedBox(height: 20),
-          Text('Reminder', style: text.titleMedium),
+          Text(l.reminder, style: text.titleMedium),
           const SizedBox(height: 4),
           _ReminderSection(reminders: reminders),
           const SizedBox(height: 20),
-          Text('Appearance', style: text.titleMedium),
+          Text(l.language, style: text.titleMedium),
+          const SizedBox(height: 12),
+          ValueListenableBuilder(
+            valueListenable: language,
+            builder: (context, lang, _) => SegmentedButton<String>(
+              segments: [
+                ButtonSegment(value: 'phone', label: Text(l.languagePhone), icon: const Icon(Icons.smartphone)),
+                const ButtonSegment(value: 'en', label: Text('English')),
+                const ButtonSegment(value: 'hi', label: Text('हिन्दी')),
+              ],
+              selected: {lang ?? 'phone'},
+              showSelectedIcon: false,
+              onSelectionChanged: (s) => language.set(s.first == 'phone' ? null : s.first),
+            ),
+          ),
+          const SizedBox(height: 20),
+          Text(l.appearance, style: text.titleMedium),
           const SizedBox(height: 12),
           ValueListenableBuilder(
             valueListenable: appearance,
             builder: (context, mode, _) => SegmentedButton<ThemeMode>(
-              segments: const [
-                ButtonSegment(value: ThemeMode.system, label: Text('Phone'), icon: Icon(Icons.smartphone)),
-                ButtonSegment(value: ThemeMode.light, label: Text('Light'), icon: Icon(Icons.light_mode_outlined)),
-                ButtonSegment(value: ThemeMode.dark, label: Text('Dark'), icon: Icon(Icons.dark_mode_outlined)),
+              segments: [
+                ButtonSegment(value: ThemeMode.system, label: Text(l.themePhone), icon: const Icon(Icons.smartphone)),
+                ButtonSegment(value: ThemeMode.light, label: Text(l.themeLight), icon: const Icon(Icons.light_mode_outlined)),
+                ButtonSegment(value: ThemeMode.dark, label: Text(l.themeDark), icon: const Icon(Icons.dark_mode_outlined)),
               ],
               selected: {mode},
               showSelectedIcon: false,
@@ -67,25 +93,25 @@ class AboutScreen extends StatelessWidget {
           ListTile(
             contentPadding: EdgeInsets.zero,
             leading: const Icon(Icons.waving_hand_outlined),
-            title: const Text('Welcome tour'),
-            subtitle: const Text('How tutorials and the glow colours work'),
+            title: Text(l.welcomeTour),
+            subtitle: Text(l.welcomeTourBody),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => Navigator.of(context).push(
               MaterialPageRoute<void>(builder: (context) => WelcomeScreen(onDone: () => Navigator.of(context).pop())),
             ),
           ),
           const SizedBox(height: 20),
-          Text('This build', style: text.titleMedium),
+          Text(l.thisBuild, style: text.titleMedium),
           const SizedBox(height: 4),
-          _StatusTile(label: 'Works offline', ok: true),
-          _StatusTile(label: 'Crash reporting', ok: Env.hasSentry),
-          _StatusTile(label: 'Backend sync', ok: Env.hasSupabase),
+          _StatusTile(label: l.worksOffline, ok: true),
+          _StatusTile(label: l.crashReporting, ok: Env.hasSentry),
+          _StatusTile(label: l.backendSync, ok: Env.hasSupabase),
           if (Env.hasSentry && Env.environment == 'dev') ...[
             const SizedBox(height: 12),
             OutlinedButton.icon(
               onPressed: () => _sendTestEvent(context),
               icon: const Icon(Icons.bug_report_outlined),
-              label: const Text('Send test event to Sentry'),
+              label: Text(l.sendTestEvent),
             ),
           ],
         ],
@@ -108,7 +134,7 @@ class _StatusTile extends StatelessWidget {
       leading: Icon(ok ? Icons.check_circle : Icons.radio_button_unchecked,
           color: ok ? colors.primary : colors.outline),
       title: Text(label),
-      trailing: Text(ok ? 'On' : 'Not set up', style: TextStyle(color: colors.onSurfaceVariant)),
+      trailing: Text(ok ? context.l10n.statusOn : context.l10n.statusNotSetUp, style: TextStyle(color: colors.onSurfaceVariant)),
     );
   }
 }
@@ -127,12 +153,8 @@ class _PhysioSection extends StatelessWidget {
       return ListTile(
         contentPadding: EdgeInsets.zero,
         leading: const Icon(Icons.link_off_rounded),
-        title: const Text('Not linked'),
-        subtitle: Text(
-          programs.canLink
-              ? 'Enter the code from your physio to get your own program.'
-              : 'Linking is not available in this build.',
-        ),
+        title: Text(context.l10n.notLinked),
+        subtitle: Text(programs.canLink ? context.l10n.notLinkedBody : context.l10n.linkUnavailable),
         trailing: programs.canLink ? const Icon(Icons.chevron_right) : null,
         onTap: programs.canLink ? openLink : null,
       );
@@ -142,20 +164,20 @@ class _PhysioSection extends StatelessWidget {
         ListTile(
           contentPadding: EdgeInsets.zero,
           leading: const Icon(Icons.local_hospital_outlined),
-          title: Text(link.clinicianName ?? link.clinicName ?? 'Your physio'),
+          title: Text(link.clinicianName ?? link.clinicName ?? context.l10n.myPhysio),
           subtitle: Text(
             [
               if (link.clinicName != null && link.clinicianName != null) link.clinicName!,
               if (link.phone != null) link.phone!,
-              'Linked as ${link.displayName}',
+              context.l10n.linkedAs(link.displayName),
             ].join(' · '),
           ),
         ),
         ListTile(
           contentPadding: EdgeInsets.zero,
           leading: Icon(Icons.qr_code_2_rounded, color: muted),
-          title: const Text('Use a new code'),
-          subtitle: const Text('For a new phone, or when your physio gives you a new code'),
+          title: Text(context.l10n.useNewCode),
+          subtitle: Text(context.l10n.useNewCodeBody),
           trailing: const Icon(Icons.chevron_right),
           onTap: openLink,
         ),
@@ -170,11 +192,10 @@ class _ReminderSection extends StatelessWidget {
   final ReminderController reminders;
 
   Future<void> _turnOn(BuildContext context, TimeOfDay time) async {
-    final ok = await reminders.enable(time);
+    final l = context.l10n;
+    final ok = await reminders.enable(time, title: l.reminderTitle, body: l.reminderBody);
     if (!ok && context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Notifications are off for PhysioSathi. Turn them on in your phone settings.')),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l.notificationsOff)));
     }
   }
 
@@ -187,14 +208,14 @@ class _ReminderSection extends StatelessWidget {
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
             secondary: const Icon(Icons.notifications_active_outlined),
-            title: const Text('Remind me every day'),
+            title: Text(context.l10n.remindDaily),
             value: settings.enabled,
             onChanged: (on) => on ? _turnOn(context, settings.time) : reminders.disable(),
           ),
           ListTile(
             contentPadding: EdgeInsets.zero,
             leading: const Icon(Icons.schedule),
-            title: const Text('Time'),
+            title: Text(context.l10n.reminderTime),
             trailing: Text(settings.time.format(context), style: Theme.of(context).textTheme.titleMedium),
             onTap: () async {
               final picked = await showTimePicker(context: context, initialTime: settings.time);

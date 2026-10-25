@@ -142,7 +142,7 @@ class ProgramController extends ChangeNotifier {
     if (backend == null || link == null) return false;
     final row = await backend.latestProgram();
     if (row == null) return false;
-    final next = Program.fromServer(row, language: link.language);
+    final next = Program.fromServer(row);
     if (next.version == _program.version && next.id == _program.id) return false;
     final wasLinkedProgram = _program.fromClinic;
     _program = next;

@@ -11,6 +11,7 @@ import 'onboarding/welcome.dart';
 import 'program/program_controller.dart';
 import 'reminders/reminders.dart';
 import 'settings/appearance.dart';
+import 'settings/language.dart';
 import 'sync/supabase_backend.dart';
 
 Future<void> main() async {
@@ -28,6 +29,7 @@ Future<void> main() async {
   // Bundled with the app, so it loads with no network.
   final library = await ExerciseLibrary.load();
   final appearance = await AppearanceController.load();
+  final language = await LanguageController.load();
   final welcome = await WelcomeController.load();
   final programs = await ProgramController.load(
     library: library,
@@ -46,6 +48,7 @@ Future<void> main() async {
     welcome: welcome,
     programs: programs,
     reminders: reminders,
+    language: language,
   );
 
   if (!Env.hasSentry) {

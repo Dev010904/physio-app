@@ -1,20 +1,17 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import '../common/ui.dart';
 import '../data/local_store.dart';
 import '../exercises/exercise.dart';
+import '../l10n/l10n.dart';
 import '../program/program_controller.dart';
 import '../session/session_plan.dart';
 import '../theme/app_theme.dart';
 import '../tutorials/tutorial_view.dart';
 import 'progress.dart';
-
-const _weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-const _months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
-String _dayLabel(DateTime d) => '${d.day} ${_months[d.month - 1]}';
 
 /// The patient's progress: streak, how much of this week is done, the last
 /// two weeks, what is coming up, and each exercise's history.
@@ -27,7 +24,7 @@ class ProgressScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Progress')),
+      appBar: AppBar(title: Text(context.l10n.navProgress)),
       body: ListenableBuilder(
         listenable: Listenable.merge([programs, programs.logRevision]),
         builder: (context, _) => FutureBuilder<List<SessionRecord>>(
@@ -62,10 +59,10 @@ class _Empty extends StatelessWidget {
               child: Icon(Icons.insights_rounded, size: 60, color: theme.colorScheme.primary),
             ),
             const SizedBox(height: 20),
-            Text('No sessions yet', style: theme.textTheme.headlineSmall),
+            Text(context.l10n.noSessionsYet, style: theme.textTheme.headlineSmall),
             const SizedBox(height: 8),
             Text(
-              'Your streak, your week and each exercise\'s history appear here after your first session.',
+              context.l10n.noSessionsBody,
               style: theme.textTheme.bodyLarge?.copyWith(color: theme.colorScheme.onSurfaceVariant),
               textAlign: TextAlign.center,
             ),
@@ -86,9 +83,10 @@ class _ProgressList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
+    final l = context.l10n;
     final titles = {
-      for (final e in library.exercises) e.id: e,
-      for (final e in programs.program.exercises) e.id: e,
+      for (final e in library.inLanguage(context.lang).exercises) e.id: e,
+      for (final e in programs.program.inLanguage(context.lang).exercises) e.id: e,
     };
     final history = progress.historyByExercise;
     final week = progress.adherence();
@@ -102,7 +100,7 @@ class _ProgressList extends StatelessWidget {
               child: _StatCard(
                 icon: Icons.local_fire_department_rounded,
                 value: '${progress.streak}',
-                label: progress.streak == 1 ? 'day in a row' : 'days in a row',
+                label: l.daysInARow(progress.streak),
               ),
             ),
             const SizedBox(width: 12),
@@ -110,11 +108,11 @@ class _ProgressList extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 16),
-        Text('Last 2 weeks', style: text.titleMedium),
+        Text(l.last2Weeks, style: text.titleMedium),
         const SizedBox(height: 8),
         Card(child: Padding(padding: const EdgeInsets.all(16), child: _DayGrid(days: progress.recentDays()))),
         const SizedBox(height: 20),
-        Text('Coming up', style: text.titleMedium),
+        Text(l.comingUp, style: text.titleMedium),
         const SizedBox(height: 8),
         Card(
           child: Column(
@@ -127,11 +125,11 @@ class _ProgressList extends StatelessWidget {
                     final exercises = [for (final e in entries) e.exercise];
                     return ListTile(
                       dense: true,
-                      title: Text(i == 1 ? 'Tomorrow' : _weekdays[day.weekday - 1], style: text.bodyLarge),
+                      title: Text(i == 1 ? l.tomorrow : weekdayName(context, day), style: text.bodyLarge),
                       trailing: Text(
                         entries.isEmpty
-                            ? 'Rest'
-                            : '${entries.length} ${entries.length == 1 ? 'exercise' : 'exercises'} · ${minutesLabel(SessionPlan.build(exercises).totalDuration)}',
+                            ? l.rest
+                            : '${l.exerciseCount(entries.length)} · ${aboutMinutes(l, SessionPlan.build(exercises).totalDuration)}',
                         style: text.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                       ),
                     );
@@ -142,7 +140,7 @@ class _ProgressList extends StatelessWidget {
         ),
         if (history.isNotEmpty) ...[
           const SizedBox(height: 20),
-          Text('Your exercises', style: text.titleMedium),
+          Text(l.yourExercises, style: text.titleMedium),
           const SizedBox(height: 8),
           Card(
             child: Column(
@@ -208,7 +206,7 @@ class _WeekCard extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(f == null ? '–' : '${(f * 100).round()}%', style: theme.textTheme.displaySmall?.copyWith(fontWeight: FontWeight.w700)),
-            Text('of this week\'s plan', style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+            Text(context.l10n.ofThisWeeksPlan, style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
           ],
         ),
       ),
@@ -256,10 +254,10 @@ class _DayGrid extends StatelessWidget {
         DayStatus.rest || DayStatus.before => (colors.surfaceContainerHighest, null, null),
       };
       return Semantics(
-        label: '${_dayLabel(day)}: ${status.name}',
+        label: '${dayAndMonth(context, day)}: ${status.name}',
         child: Column(
           children: [
-            Text(_weekdays[day.weekday - 1][0], style: text.labelMedium?.copyWith(color: colors.onSurfaceVariant)),
+            Text(DateFormat.EEEEE(context.lang).format(day), style: text.labelMedium?.copyWith(color: colors.onSurfaceVariant)),
             const SizedBox(height: 4),
             Container(
               width: 34,
@@ -309,9 +307,7 @@ class _ExerciseRow extends StatelessWidget {
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       leading: exercise == null ? const Icon(Icons.fitness_center) : TutorialThumb(exercise: exercise!),
       title: Text(title),
-      subtitle: Text(
-        '${rows.length} ${rows.length == 1 ? 'time' : 'times'} · ${last == null ? 'pain not recorded' : 'last pain $last/10'}',
-      ),
+      subtitle: Text('${context.l10n.timesDone(rows.length)} · ${last == null ? context.l10n.painNotRecorded : context.l10n.lastPain(last)}'),
       trailing: pains.length < 2
           ? const Icon(Icons.chevron_right)
           : SizedBox(
@@ -375,17 +371,18 @@ class _ExerciseHistoryScreen extends StatelessWidget {
         separatorBuilder: (_, _) => const Divider(height: 1),
         itemBuilder: (context, i) {
           final r = rows[i].record;
+          final l = context.l10n;
           final parts = [
-            '${r.setsDone} of ${r.setsPlanned} sets',
-            if (r.repsDone != null) '${r.repsDone} reps',
-            r.pain == null ? 'pain not recorded' : 'pain ${r.pain}/10',
+            l.setsOfPlanned(r.setsDone, r.setsPlanned),
+            if (r.repsDone != null) l.repsCount(r.repsDone!),
+            r.pain == null ? l.painNotRecorded : l.painOutOf10(r.pain!),
           ];
           return Padding(
             padding: const EdgeInsets.symmetric(vertical: 12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('${_weekdays[rows[i].day.weekday - 1]}, ${_dayLabel(rows[i].day)}', style: theme.textTheme.titleSmall),
+                Text('${weekdayName(context, rows[i].day)}, ${dayAndMonth(context, rows[i].day)}', style: theme.textTheme.titleSmall),
                 const SizedBox(height: 2),
                 Text(parts.join(' · '), style: theme.textTheme.bodyLarge),
                 if (r.note != null) ...[
@@ -398,7 +395,7 @@ class _ExerciseHistoryScreen extends StatelessWidget {
                       Expanded(child: Text(r.note!, style: theme.textTheme.bodyMedium)),
                     ],
                   ),
-                  Text(r.shareNote ? 'Shared with your physio' : 'Private, on this phone only', style: theme.textTheme.labelSmall?.copyWith(color: muted)),
+                  Text(r.shareNote ? l.sharedWithPhysio : l.privateOnPhone, style: theme.textTheme.labelSmall?.copyWith(color: muted)),
                 ],
               ],
             ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/l10n.dart';
 import '../theme/app_theme.dart';
 import 'session_log.dart';
 
@@ -41,16 +42,17 @@ class _PainCheckState extends State<_PainCheck> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final text = theme.textTheme;
+    final l = context.l10n;
     return Padding(
       padding: EdgeInsets.fromLTRB(20, 0, 20, 16 + MediaQuery.viewInsetsOf(context).bottom),
       child: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('How did ${widget.exerciseTitle.toLowerCase()} feel?', style: text.headlineSmall),
+            Text(l.howDidItFeel(l.localeName == 'hi' ? widget.exerciseTitle : widget.exerciseTitle.toLowerCase()), style: text.headlineSmall),
             const SizedBox(height: 4),
             Text(
-              'Any pain? 0 is none, 10 is the worst you can imagine.',
+              l.painScale,
               style: text.bodyLarge?.copyWith(color: theme.colorScheme.onSurfaceVariant),
             ),
             const SizedBox(height: 16),
@@ -63,7 +65,7 @@ class _PainCheckState extends State<_PainCheck> {
             if (_pain != null && SafetyRules.painNeedsStop(_pain!)) ...[
               const SizedBox(height: 12),
               Text(
-                'That is a lot of pain. We will stop the session so you can rest.',
+                l.painTooHigh,
                 style: text.bodyLarge?.copyWith(color: theme.colorScheme.error),
               ),
             ],
@@ -74,7 +76,7 @@ class _PainCheckState extends State<_PainCheck> {
                 child: TextButton.icon(
                   onPressed: () => setState(() => _noteOpen = true),
                   icon: const Icon(Icons.edit_note),
-                  label: const Text('Add a note'),
+                  label: Text(l.addNote),
                 ),
               )
             else ...[
@@ -84,15 +86,15 @@ class _PainCheckState extends State<_PainCheck> {
                 minLines: 2,
                 maxLines: 4,
                 textCapitalization: TextCapitalization.sentences,
-                decoration: const InputDecoration(hintText: 'For example: knee felt stiff on the left', border: OutlineInputBorder()),
+                decoration: InputDecoration(hintText: l.noteHint, border: const OutlineInputBorder()),
               ),
               if (widget.canShare)
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
                   value: _share,
                   onChanged: (v) => setState(() => _share = v),
-                  title: const Text('Share this note with my physio'),
-                  subtitle: const Text('Otherwise it stays on this phone'),
+                  title: Text(l.shareNote),
+                  subtitle: Text(l.shareNoteOff),
                 ),
             ],
             const SizedBox(height: 12),
@@ -100,11 +102,11 @@ class _PainCheckState extends State<_PainCheck> {
               onPressed: _pain == null
                   ? null
                   : () => Navigator.pop(context, PainAnswer(pain: _pain, note: _note.text, shareNote: _share)),
-              child: const Text('Continue'),
+              child: Text(l.continueLabel),
             ),
             TextButton(
               onPressed: () => Navigator.pop(context, _note.text.trim().isEmpty ? null : PainAnswer(note: _note.text, shareNote: _share)),
-              child: const Text('Skip'),
+              child: Text(l.skip),
             ),
           ],
         ),
@@ -133,7 +135,7 @@ class _PainButton extends StatelessWidget {
     return Semantics(
       button: true,
       selected: selected,
-      label: 'Pain $value',
+      label: context.l10n.painValue(value),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),
         width: 56,
@@ -175,21 +177,21 @@ Future<StopChoice?> showStopSheet(BuildContext context) => showModalBottomSheet<
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('Why are you stopping?', style: Theme.of(context).textTheme.headlineSmall),
+            Text(context.l10n.whyStopping, style: Theme.of(context).textTheme.headlineSmall),
             const SizedBox(height: 8),
             for (final flag in RedFlag.values)
               ListTile(
                 leading: Icon(Icons.warning_amber_rounded, color: colors.error),
-                title: Text(flag.label),
+                title: Text(redFlagLabel(context.l10n, flag)),
                 onTap: () => Navigator.pop(context, StopChoice(flag)),
               ),
             ListTile(
               leading: const Icon(Icons.pause_circle_outline),
-              title: const Text('I just want to stop for today'),
+              title: Text(context.l10n.justStop),
               onTap: () => Navigator.pop(context, const StopChoice(null)),
             ),
             const SizedBox(height: 8),
-            OutlinedButton(onPressed: () => Navigator.pop(context), child: const Text('Keep going')),
+            OutlinedButton(onPressed: () => Navigator.pop(context), child: Text(context.l10n.keepGoing)),
           ],
         ),
       ),
@@ -224,11 +226,11 @@ class FeedbackButtons extends StatelessWidget {
     );
     return Row(
       children: [
-        choice('easy', 'Easy', Icons.sentiment_very_satisfied_outlined),
+        choice('easy', context.l10n.feedbackEasy, Icons.sentiment_very_satisfied_outlined),
         const SizedBox(width: 10),
-        choice('ok', 'OK', Icons.sentiment_neutral_outlined),
+        choice('ok', context.l10n.feedbackOk, Icons.sentiment_neutral_outlined),
         const SizedBox(width: 10),
-        choice('hard', 'Hard', Icons.sentiment_dissatisfied_outlined),
+        choice('hard', context.l10n.feedbackHard, Icons.sentiment_dissatisfied_outlined),
       ],
     );
   }

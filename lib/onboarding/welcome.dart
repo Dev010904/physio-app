@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../app.dart';
 import '../branding/logo.dart';
+import '../l10n/l10n.dart';
 import '../theme/app_theme.dart';
 import '../tutorials/tutorial.dart';
 import '../tutorials/tutorial_view.dart';
@@ -67,6 +68,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   Widget build(BuildContext context) {
     final brand = Brand.of(context);
     final colors = Theme.of(context).colorScheme;
+    final l = context.l10n;
     return Scaffold(
       body: SafeArea(
         child: Column(
@@ -78,7 +80,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 child: AnimatedOpacity(
                   opacity: _last ? 0 : 1,
                   duration: const Duration(milliseconds: 200),
-                  child: TextButton(onPressed: _last ? null : widget.onDone, child: const Text('Skip')),
+                  child: TextButton(onPressed: _last ? null : widget.onDone, child: Text(l.skip)),
                 ),
               ),
             ),
@@ -87,11 +89,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 controller: _pages,
                 onPageChanged: (i) => setState(() => _page = i),
                 children: [
-                  const _Page(
-                    visual: LogoMark(size: 132),
-                    title: 'Welcome to $appName',
-                    body: 'Your home exercises, guided step by step. Everything works without internet.',
-                  ),
+                  _Page(visual: const LogoMark(size: 132), title: l.welcomeTitle(appName), body: l.welcomeBody),
                   _Page(
                     visual: ClipRRect(
                       borderRadius: BorderRadius.circular(brand.radius + 4),
@@ -103,10 +101,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                         ),
                       ),
                     ),
-                    title: 'Watch, then move along',
-                    body:
-                        'The video moves with the timer and the voice, rep by rep. '
-                        'The glow shows what each exercise does:',
+                    title: l.watchTitle,
+                    body: l.watchBody,
                     extra: Wrap(
                       alignment: WrapAlignment.center,
                       spacing: 18,
@@ -115,7 +111,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                         for (final effect in Effect.values)
                           Row(
                             mainAxisSize: MainAxisSize.min,
-                            children: [EffectDot(effect), const SizedBox(width: 8), Text(effect.label)],
+                            children: [EffectDot(effect), const SizedBox(width: 8), Text(effectLabel(l, effect))],
                           ),
                       ],
                     ),
@@ -127,10 +123,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       decoration: BoxDecoration(color: colors.errorContainer, shape: BoxShape.circle),
                       child: Icon(Icons.health_and_safety_outlined, size: 72, color: colors.onErrorContainer),
                     ),
-                    title: 'Exercise safely',
-                    body:
-                        'Move slowly and stay within comfort. Stop and contact your physiotherapist '
-                        'if you feel sharp pain, numbness, or pain above 7 out of 10.',
+                    title: l.safetyTitle,
+                    body: l.safetyBody,
                   ),
                 ],
               ),
@@ -140,7 +134,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
               child: SizedBox(
                 width: double.infinity,
-                child: FilledButton(onPressed: _next, child: Text(_last ? 'Get started' : 'Next')),
+                child: FilledButton(onPressed: _next, child: Text(_last ? l.getStarted : l.next)),
               ),
             ),
           ],

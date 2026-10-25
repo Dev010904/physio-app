@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../common/ui.dart';
 import '../exercises/exercise.dart';
+import '../l10n/l10n.dart';
 import 'tutorial.dart';
 
 /// Shows [tutorial]'s footage at the position [progress] returns
@@ -212,7 +213,7 @@ class MuscleLegend extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        for (final MapEntry(key: effect, value: names) in tutorial.muscles.entries)
+        for (final MapEntry(key: effect, value: names) in tutorial.musclesIn(context.lang).entries)
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 6),
             child: Row(
@@ -225,7 +226,7 @@ class MuscleLegend extends StatelessWidget {
                     TextSpan(
                       children: [
                         TextSpan(
-                          text: '${effect.label}: ',
+                          text: '${effectLabel(context.l10n, effect)}: ',
                           style: const TextStyle(fontWeight: FontWeight.w600),
                         ),
                         TextSpan(text: names.join(', ')),
@@ -260,3 +261,9 @@ class EffectDot extends StatelessWidget {
     ),
   );
 }
+
+String effectLabel(AppLocalizations l, Effect effect) => switch (effect) {
+  Effect.works => l.effectWorks,
+  Effect.stretches => l.effectStretches,
+  Effect.loosens => l.effectLoosens,
+};

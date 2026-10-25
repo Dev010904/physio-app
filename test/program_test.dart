@@ -110,9 +110,12 @@ void main() {
   });
 
   test('Hindi patients get Hindi text where the library has it', () {
-    final program = Program.fromServer(_serverProgram(version: 1), language: 'hi');
+    final program = Program.fromServer(_serverProgram(version: 1)).inLanguage('hi');
     expect(program.entries.last.exercise.title, 'पिंडली स्ट्रेच');
     expect(program.entries.last.exercise.steps, ['Face a wall.'], reason: 'no Hindi steps yet, so English');
+    expect(program.inLanguage('en').entries.last.exercise.title, 'Calf stretch', reason: 'switches back offline');
+    final cached = Program.fromJson(program.toJson()).inLanguage('hi');
+    expect(cached.entries.last.exercise.title, 'पिंडली स्ट्रेच', reason: 'Hindi survives the phone cache');
   });
 
   test('a cached program survives a save and reload unchanged', () {

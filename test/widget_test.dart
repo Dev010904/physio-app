@@ -7,6 +7,7 @@ import 'package:physio_app/app.dart';
 import 'package:physio_app/exercises/exercise.dart';
 import 'package:physio_app/onboarding/welcome.dart';
 import 'package:physio_app/settings/appearance.dart';
+import 'package:physio_app/settings/language.dart';
 
 void main() {
   final library = ExerciseLibrary.fromJson(
@@ -58,6 +59,18 @@ void main() {
     await tester.pumpAndSettle();
     expect(welcome.value, isTrue);
     expect(find.widgetWithText(FilledButton, 'Start session'), findsOneWidget);
+  });
+
+  testWidgets('Hindi shows the whole Today screen and exercise names in Hindi', (tester) async {
+    await tester.pumpWidget(PhysioApp(library: library, language: LanguageController('hi')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('चलिए शुरू करें'), findsOneWidget);
+    expect(find.text('शुरुआती कार्यक्रम: घुटना और कूल्हा'), findsOneWidget);
+    expect(find.text('जांघ कसना (क्वाड सेट)'), findsOneWidget);
+    expect(find.text('सत्र शुरू करें'), findsOneWidget);
+    expect(find.textContaining('2 सेट × 10 बार'), findsWidgets);
+    expect(find.text('आज'), findsOneWidget, reason: 'bottom tab');
   });
 
   testWidgets('the Library tab lists all 10 exercises', (tester) async {

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../common/ui.dart';
+import '../l10n/l10n.dart';
 import '../program/program.dart';
 import '../program/program_controller.dart';
 import '../session/session_plan.dart';
@@ -28,6 +29,7 @@ class ExercisePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = context.l10n;
     final rx = exercise.prescription;
     final theme = Theme.of(context);
     final text = theme.textTheme;
@@ -62,8 +64,8 @@ class ExercisePage extends StatelessWidget {
             spacing: 8,
             runSpacing: 8,
             children: [
-              Chip(label: Text(capitalize(exercise.bodyRegion))),
-              for (final item in exercise.equipment) Chip(label: Text(capitalize(item))),
+              Chip(label: Text(l.region(exercise.bodyRegion))),
+              for (final item in exercise.equipment) Chip(label: Text(l.equipment(item))),
             ],
           ),
           const SizedBox(height: 16),
@@ -71,17 +73,17 @@ class ExercisePage extends StatelessWidget {
             child: ListTile(
               contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
               leading: Icon(Icons.timer_outlined, color: colors.primary),
-              title: Text(rx.summary),
-              subtitle: Text('${capitalize(minutesLabel(SessionPlan.exerciseDuration(rx)))} in total'),
+              title: Text(doseSummary(l, rx)),
+              subtitle: Text(l.aboutMinutesInTotal((SessionPlan.exerciseDuration(rx).inSeconds / 60).ceil())),
             ),
           ),
           const SizedBox(height: 24),
-          Text('What it does', style: text.titleMedium),
+          Text(l.whatItDoes, style: text.titleMedium),
           const SizedBox(height: 4),
           MuscleLegend(exercise: exercise),
           if (!reviewedByPhysio) ...[const SizedBox(height: 12), const DraftContentNotice()],
           const SizedBox(height: 24),
-          Text('How to do it', style: text.titleMedium),
+          Text(l.howToDoIt, style: text.titleMedium),
           const SizedBox(height: 8),
           for (final (i, step) in exercise.steps.indexed)
             Padding(
@@ -118,7 +120,7 @@ class ExercisePage extends StatelessWidget {
               ),
             ),
             icon: const Icon(Icons.play_arrow_rounded, size: 28),
-            label: const Text('Start exercise'),
+            label: Text(l.startExercise),
           ),
         ),
       ),

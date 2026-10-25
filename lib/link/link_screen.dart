@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../l10n/l10n.dart';
 import '../program/program_controller.dart';
 import '../sync/supabase_backend.dart';
 import '../theme/app_theme.dart';
@@ -37,6 +38,7 @@ class _LinkScreenState extends State<LinkScreen> {
   }
 
   Future<void> _link() async {
+    final l = context.l10n;
     setState(() {
       _busy = true;
       _error = null;
@@ -45,13 +47,14 @@ class _LinkScreenState extends State<LinkScreen> {
       await widget.programs.linkWithCode(_cleanCode).timeout(const Duration(seconds: 30));
       if (mounted) Navigator.of(context).pop(true);
     } on LinkException catch (e) {
-      _fail(e.message);
+      // The server explains in English; the common case has its own words.
+      _fail(e.message.contains('not valid') ? l.errInvalidCode : e.message);
     } on SocketException {
-      _fail('No internet connection. Connect to Wi-Fi or mobile data and try again.');
+      _fail(l.errNoInternet);
     } on TimeoutException {
-      _fail('The connection is too slow right now. Please try again.');
+      _fail(l.errSlow);
     } catch (e) {
-      _fail('Could not link right now. Please try again in a moment.');
+      _fail(l.errGeneric);
     }
   }
 
@@ -69,8 +72,9 @@ class _LinkScreenState extends State<LinkScreen> {
     final theme = Theme.of(context);
     final text = theme.textTheme;
     final colors = theme.colorScheme;
+    final l = context.l10n;
     return Scaffold(
-      appBar: AppBar(title: const Text('Link with my physio')),
+      appBar: AppBar(title: Text(l.linkTitle)),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
         children: [
@@ -82,10 +86,10 @@ class _LinkScreenState extends State<LinkScreen> {
             child: Icon(Icons.link_rounded, size: 52, color: colors.primary),
           ),
           const SizedBox(height: 20),
-          Text('Enter the code from your physio', style: text.headlineSmall, textAlign: TextAlign.center),
+          Text(l.enterCode, style: text.headlineSmall, textAlign: TextAlign.center),
           const SizedBox(height: 8),
           Text(
-            'It has 8 letters and numbers. Your physio can give you a new one if it has expired.',
+            l.codeHelp,
             style: text.bodyLarge?.copyWith(color: colors.onSurfaceVariant),
             textAlign: TextAlign.center,
           ),
@@ -122,15 +126,15 @@ class _LinkScreenState extends State<LinkScreen> {
             onChanged: _busy ? null : (v) => setState(() => _consent = v ?? false),
             controlAffinity: ListTileControlAffinity.leading,
             contentPadding: EdgeInsets.zero,
-            title: const Text('Share my exercise logs and pain scores with my physio'),
-            subtitle: const Text('Your notes stay on this phone unless you choose to share them. Camera video is never saved or sent.'),
+            title: Text(l.consent),
+            subtitle: Text(l.consentBody),
           ),
           const SizedBox(height: 20),
           FilledButton(
             onPressed: _ready ? _link : null,
             child: _busy
                 ? const SizedBox.square(dimension: 24, child: CircularProgressIndicator(strokeWidth: 3))
-                : const Text('Link my app'),
+                : Text(l.linkButton),
           ),
         ],
       ),

@@ -9,6 +9,7 @@ import 'exercises/exercise.dart';
 import 'data/local_store.dart';
 import 'onboarding/welcome.dart';
 import 'program/program_controller.dart';
+import 'reminders/reminders.dart';
 import 'settings/appearance.dart';
 import 'sync/supabase_backend.dart';
 
@@ -35,7 +36,17 @@ Future<void> main() async {
   );
   // Sends anything logged offline and picks up program changes, in the background.
   programs.sync();
-  final app = PhysioApp(library: library, appearance: appearance, welcome: welcome, programs: programs);
+  final scheduler = LocalNotificationScheduler();
+  final reminders = await ReminderController.load(scheduler);
+  // Time zones and the notification plugin load in the background.
+  scheduler.init();
+  final app = PhysioApp(
+    library: library,
+    appearance: appearance,
+    welcome: welcome,
+    programs: programs,
+    reminders: reminders,
+  );
 
   if (!Env.hasSentry) {
     runApp(app);

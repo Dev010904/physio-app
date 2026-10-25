@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../common/ui.dart';
+import '../program/program.dart';
+import '../program/program_controller.dart';
 import '../session/session_plan.dart';
 import '../session/session_player_screen.dart';
 import '../theme/app_theme.dart';
@@ -9,10 +11,20 @@ import '../tutorials/tutorial_view.dart';
 import 'exercise.dart';
 
 class ExercisePage extends StatelessWidget {
-  const ExercisePage({super.key, required this.exercise, required this.reviewedByPhysio});
+  const ExercisePage({
+    super.key,
+    required this.exercise,
+    required this.reviewedByPhysio,
+    required this.programs,
+    this.entry,
+  });
 
   final Exercise exercise;
   final bool reviewedByPhysio;
+  final ProgramController programs;
+
+  /// Set when opened from the patient's program, so its log reaches the physio.
+  final ProgramEntry? entry;
 
   @override
   Widget build(BuildContext context) {
@@ -97,7 +109,13 @@ class ExercisePage extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
           child: FilledButton.icon(
             onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(builder: (_) => SessionPlayerScreen(exercises: [exercise])),
+              MaterialPageRoute<void>(
+                builder: (_) => SessionPlayerScreen(
+                  entries: [entry ?? ProgramEntry(exercise: exercise)],
+                  programs: programs,
+                  programId: entry?.itemId != null ? programs.program.id : null,
+                ),
+              ),
             ),
             icon: const Icon(Icons.play_arrow_rounded, size: 28),
             label: const Text('Start exercise'),

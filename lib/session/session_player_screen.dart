@@ -5,17 +5,28 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../common/ui.dart';
 import '../exercises/exercise.dart';
+import '../program/program.dart';
+import '../program/program_controller.dart';
+import '../safety/safety_screen.dart';
 import '../theme/app_theme.dart';
 import '../tutorials/tutorial.dart';
 import '../tutorials/tutorial_view.dart';
+import 'check_in.dart';
 import 'cue_player.dart';
 import 'session_controller.dart';
+import 'session_log.dart';
 import 'session_plan.dart';
 
 class SessionPlayerScreen extends StatefulWidget {
-  const SessionPlayerScreen({super.key, required this.exercises});
+  const SessionPlayerScreen({super.key, required this.entries, required this.programs, this.programId});
 
-  final List<Exercise> exercises;
+  /// What to do, in order, with each exercise's dose.
+  final List<ProgramEntry> entries;
+  final ProgramController programs;
+
+  /// The server program these entries come from; null for the starter
+  /// program and the library, whose logs stay on the phone.
+  final String? programId;
 
   @override
   State<SessionPlayerScreen> createState() => _SessionPlayerScreenState();
@@ -23,18 +34,30 @@ class SessionPlayerScreen extends StatefulWidget {
 
 class _SessionPlayerScreenState extends State<SessionPlayerScreen>
     with SingleTickerProviderStateMixin {
-  late final SessionPlan _plan = SessionPlan.build(widget.exercises);
-  late final CuePlayer _cues = CuePlayer(widget.exercises);
+  late final List<Exercise> _exercises = [for (final e in widget.entries) e.exercise];
+  late final SessionPlan _plan = SessionPlan.build(_exercises);
+  late final CuePlayer _cues = CuePlayer(_exercises);
   late final SessionController _controller = SessionController(_plan, cues: _cues);
+  late final SessionLogger _log = SessionLogger(
+    store: widget.programs.store,
+    entries: widget.entries,
+    programId: widget.programId,
+  );
 
   // Leaving the app mid-session pauses it instead of silently skipping ahead.
   late final AppLifecycleListener _lifecycle = AppLifecycleListener(onHide: _controller.pause);
+
+  int _phaseIndex = -1;
+  int _exerciseIndex = 0;
+  bool _asking = false;
 
   @override
   void initState() {
     super.initState();
     _lifecycle; // start listening
     WakelockPlus.enable();
+    _log.start();
+    _controller.addListener(_onProgress);
     _cues.init().whenComplete(() {
       if (mounted) _controller.start(this);
     });
@@ -42,11 +65,96 @@ class _SessionPlayerScreenState extends State<SessionPlayerScreen>
 
   @override
   void dispose() {
+    _controller.removeListener(_onProgress);
     _lifecycle.dispose();
     _controller.dispose();
     _cues.dispose();
     WakelockPlus.disable();
     super.dispose();
+  }
+
+  /// Tracks the work reached and asks how each exercise felt when it ends.
+  void _onProgress() {
+    if (_controller.phaseIndex != _phaseIndex && !_controller.isFinished) {
+      _phaseIndex = _controller.phaseIndex;
+      _log.phaseEntered(_controller.phase);
+    }
+    final index = _controller.isFinished ? _exercises.length : _controller.phase.exerciseIndex;
+    if (index > _exerciseIndex) {
+      final done = _exerciseIndex;
+      _exerciseIndex = index;
+      _askHowItFelt(done);
+    }
+  }
+
+  Future<void> _askHowItFelt(int index) async {
+    if (_asking || _log.isRecorded(index)) return;
+    _asking = true;
+    final wasPaused = _controller.isPaused;
+    _controller.pause();
+    final answer = await showPainCheck(
+      context,
+      exerciseTitle: _exercises[index].title,
+      canShare: widget.programs.isLinked,
+    );
+    _asking = false;
+    if (!mounted) return;
+    await _log.exerciseDone(index, answer ?? const PainAnswer());
+    final pain = answer?.pain;
+    if (pain != null && SafetyRules.painNeedsStop(pain)) {
+      await _log.raiseFlag('high_pain', {'pain': pain, 'exercise': _exercises[index].id});
+      await _stopForSafety(pain: pain);
+      return;
+    }
+    if (!wasPaused) _controller.resume();
+  }
+
+  /// The Stop button: a red-flag symptom ends the session at once.
+  Future<void> _onStop() async {
+    final wasPaused = _controller.isPaused;
+    _controller.pause();
+    final choice = await showStopSheet(context);
+    if (!mounted) return;
+    if (choice == null) {
+      if (!wasPaused) _controller.resume();
+      return;
+    }
+    final flag = choice.flag;
+    if (flag == null) {
+      await _endEarly();
+      return;
+    }
+    final current = _controller.isFinished ? _exercises.length - 1 : _controller.phase.exerciseIndex;
+    await _log.raiseFlag('red_flag', {'symptom': flag.name, 'exercise': _exercises[current].id});
+    await _stopForSafety(flag: flag);
+  }
+
+  Future<void> _stopForSafety({RedFlag? flag, int? pain}) async {
+    await _log.end(stoppedForSafety: true);
+    widget.programs
+      ..logsChanged()
+      ..sync();
+    if (!mounted) return;
+    await Navigator.of(context).pushReplacement(
+      MaterialPageRoute<void>(builder: (_) => SafetyStopScreen(flag: flag, pain: pain, link: widget.programs.link)),
+    );
+  }
+
+  /// Leaves before the end. What was done so far is kept.
+  Future<void> _endEarly() async {
+    await _log.end();
+    widget.programs
+      ..logsChanged()
+      ..sync();
+    if (mounted) Navigator.of(context).pop();
+  }
+
+  Future<void> _finish(String? feedback) async {
+    await _log.end(feedback: feedback);
+    widget.programs
+      ..logsChanged()
+      ..sync();
+    if (mounted) Navigator.of(context).pop();
   }
 
   Future<void> _confirmExit() async {
@@ -56,7 +164,7 @@ class _SessionPlayerScreenState extends State<SessionPlayerScreen>
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('End this session?'),
-        content: const Text('Your progress in this session will not be kept.'),
+        content: const Text('What you have done so far is saved.'),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Keep going')),
           TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('End session')),
@@ -65,7 +173,7 @@ class _SessionPlayerScreenState extends State<SessionPlayerScreen>
     );
     if (!mounted) return;
     if (leave == true) {
-      Navigator.of(context).pop();
+      await _endEarly();
     } else if (!wasPaused) {
       _controller.resume();
     }
@@ -78,9 +186,10 @@ class _SessionPlayerScreenState extends State<SessionPlayerScreen>
       builder: (context, _) {
         final finished = _controller.isFinished;
         return PopScope(
-          canPop: finished,
+          canPop: false,
           onPopInvokedWithResult: (didPop, _) {
-            if (!didPop) _confirmExit();
+            if (didPop) return;
+            finished ? _finish(null) : _confirmExit();
           },
           child: Scaffold(
             appBar: AppBar(
@@ -91,6 +200,7 @@ class _SessionPlayerScreenState extends State<SessionPlayerScreen>
                       icon: const Icon(Icons.close),
                       onPressed: () => Navigator.maybePop(context),
                     ),
+              automaticallyImplyLeading: false,
               centerTitle: true,
               title: finished || _plan.exercises.length == 1
                   ? null
@@ -99,6 +209,13 @@ class _SessionPlayerScreenState extends State<SessionPlayerScreen>
                       style: Theme.of(context).textTheme.bodyLarge,
                     ),
               actions: [
+                if (!finished)
+                  TextButton.icon(
+                    style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
+                    onPressed: _onStop,
+                    icon: const Icon(Icons.pan_tool_outlined),
+                    label: const Text('Stop'),
+                  ),
                 ValueListenableBuilder(
                   valueListenable: _cues.voiceOn,
                   builder: (context, on, _) => IconButton(
@@ -109,7 +226,9 @@ class _SessionPlayerScreenState extends State<SessionPlayerScreen>
                 ),
               ],
             ),
-            body: finished ? _CompleteView(controller: _controller) : _PlayerView(controller: _controller),
+            body: finished
+                ? _CompleteView(controller: _controller, onFeedback: _finish)
+                : _PlayerView(controller: _controller),
           ),
         );
       },
@@ -376,9 +495,12 @@ class _BarPainter extends CustomPainter {
 }
 
 class _CompleteView extends StatelessWidget {
-  const _CompleteView({required this.controller});
+  const _CompleteView({required this.controller, required this.onFeedback});
 
   final SessionController controller;
+
+  /// Called with "easy", "ok", "hard", or null when the patient just closes.
+  final ValueChanged<String?> onFeedback;
 
   @override
   Widget build(BuildContext context) {
@@ -408,7 +530,11 @@ class _CompleteView extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const Spacer(),
-            FilledButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Done')),
+            Text('How was it today?', style: text.titleMedium, textAlign: TextAlign.center),
+            const SizedBox(height: 12),
+            FeedbackButtons(onChosen: onFeedback),
+            const SizedBox(height: 12),
+            TextButton(onPressed: () => onFeedback(null), child: const Text('Skip')),
           ],
         ),
       ),

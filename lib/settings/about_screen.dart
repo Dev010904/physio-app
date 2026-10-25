@@ -6,14 +6,16 @@ import '../config/env.dart';
 import '../link/link_screen.dart';
 import '../onboarding/welcome.dart';
 import '../program/program_controller.dart';
+import '../reminders/reminders.dart';
 import 'appearance.dart';
 
 /// Settings and build information.
 class AboutScreen extends StatelessWidget {
-  const AboutScreen({super.key, required this.appearance, required this.programs});
+  const AboutScreen({super.key, required this.appearance, required this.programs, required this.reminders});
 
   final AppearanceController appearance;
   final ProgramController programs;
+  final ReminderController reminders;
 
   Future<void> _sendTestEvent(BuildContext context) async {
     final id = await Sentry.captureException(StateError('Test event: Sentry wiring check'));
@@ -41,6 +43,10 @@ class AboutScreen extends StatelessWidget {
           Text('My physio', style: text.titleMedium),
           const SizedBox(height: 4),
           ListenableBuilder(listenable: programs, builder: (context, _) => _PhysioSection(programs: programs)),
+          const SizedBox(height: 20),
+          Text('Reminder', style: text.titleMedium),
+          const SizedBox(height: 4),
+          _ReminderSection(reminders: reminders),
           const SizedBox(height: 20),
           Text('Appearance', style: text.titleMedium),
           const SizedBox(height: 12),
@@ -154,6 +160,49 @@ class _PhysioSection extends StatelessWidget {
           onTap: openLink,
         ),
       ],
+    );
+  }
+}
+
+class _ReminderSection extends StatelessWidget {
+  const _ReminderSection({required this.reminders});
+
+  final ReminderController reminders;
+
+  Future<void> _turnOn(BuildContext context, TimeOfDay time) async {
+    final ok = await reminders.enable(time);
+    if (!ok && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Notifications are off for PhysioSathi. Turn them on in your phone settings.')),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder(
+      valueListenable: reminders,
+      builder: (context, settings, _) => Column(
+        children: [
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            secondary: const Icon(Icons.notifications_active_outlined),
+            title: const Text('Remind me every day'),
+            value: settings.enabled,
+            onChanged: (on) => on ? _turnOn(context, settings.time) : reminders.disable(),
+          ),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.schedule),
+            title: const Text('Time'),
+            trailing: Text(settings.time.format(context), style: Theme.of(context).textTheme.titleMedium),
+            onTap: () async {
+              final picked = await showTimePicker(context: context, initialTime: settings.time);
+              if (picked != null && context.mounted) await _turnOn(context, picked);
+            },
+          ),
+        ],
+      ),
     );
   }
 }

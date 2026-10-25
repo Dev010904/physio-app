@@ -4,6 +4,7 @@ import 'exercises/exercise.dart';
 import 'home/home_shell.dart';
 import 'onboarding/welcome.dart';
 import 'program/program_controller.dart';
+import 'reminders/reminders.dart';
 import 'settings/appearance.dart';
 import 'theme/app_theme.dart';
 
@@ -17,15 +18,18 @@ class PhysioApp extends StatelessWidget {
     AppearanceController? appearance,
     WelcomeController? welcome,
     ProgramController? programs,
+    ReminderController? reminders,
   }) : appearance = appearance ?? AppearanceController(),
        welcome = welcome ?? WelcomeController(seen: true),
-       programs = programs ?? ProgramController.starter(library);
+       programs = programs ?? ProgramController.starter(library),
+       reminders = reminders ?? ReminderController(NoReminderScheduler());
 
   final ExerciseLibrary library;
   final AppearanceController appearance;
 
   /// Today's program: the physio's once linked, else the starter.
   final ProgramController programs;
+  final ReminderController reminders;
 
   /// First launch shows the welcome pages before Today.
   final WelcomeController welcome;
@@ -45,7 +49,7 @@ class PhysioApp extends StatelessWidget {
           builder: (context, seen, _) => AnimatedSwitcher(
             duration: const Duration(milliseconds: 300),
             child: seen
-                ? HomeShell(library: library, appearance: appearance, programs: programs)
+                ? HomeShell(library: library, appearance: appearance, programs: programs, reminders: reminders)
                 : WelcomeScreen(onDone: welcome.markSeen),
           ),
         ),

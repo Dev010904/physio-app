@@ -3,16 +3,25 @@ import 'package:flutter/material.dart';
 import '../exercises/exercise.dart';
 import '../exercises/library_screen.dart';
 import '../program/program_controller.dart';
+import '../progress/progress_screen.dart';
+import '../reminders/reminders.dart';
 import '../settings/appearance.dart';
 import 'today_screen.dart';
 
-/// Two big tabs keep navigation obvious: today's plan and the library.
+/// Three big tabs keep navigation obvious: today's plan, progress and the library.
 class HomeShell extends StatefulWidget {
-  const HomeShell({super.key, required this.library, required this.appearance, required this.programs});
+  const HomeShell({
+    super.key,
+    required this.library,
+    required this.appearance,
+    required this.programs,
+    required this.reminders,
+  });
 
   final ExerciseLibrary library;
   final AppearanceController appearance;
   final ProgramController programs;
+  final ReminderController reminders;
 
   @override
   State<HomeShell> createState() => _HomeShellState();
@@ -42,8 +51,14 @@ class _HomeShellState extends State<HomeShell> {
       body: IndexedStack(
         index: _tab,
         children: [
-          TodayScreen(library: widget.library, appearance: widget.appearance, programs: widget.programs),
-          LibraryScreen(library: widget.library),
+          TodayScreen(
+            library: widget.library,
+            appearance: widget.appearance,
+            programs: widget.programs,
+            reminders: widget.reminders,
+          ),
+          ProgressScreen(library: widget.library, programs: widget.programs),
+          LibraryScreen(library: widget.library, programs: widget.programs),
         ],
       ),
       bottomNavigationBar: NavigationBar(
@@ -51,6 +66,11 @@ class _HomeShellState extends State<HomeShell> {
         onDestinationSelected: (i) => setState(() => _tab = i),
         destinations: const [
           NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home), label: 'Today'),
+          NavigationDestination(
+            icon: Icon(Icons.insights_outlined),
+            selectedIcon: Icon(Icons.insights),
+            label: 'Progress',
+          ),
           NavigationDestination(
             icon: Icon(Icons.menu_book_outlined),
             selectedIcon: Icon(Icons.menu_book),

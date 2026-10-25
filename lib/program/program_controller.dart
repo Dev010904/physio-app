@@ -107,6 +107,11 @@ class ProgramController extends ChangeNotifier {
   bool _updated;
   SyncState _state = SyncState.idle;
 
+  /// Bumped whenever a session is logged, so progress views reload.
+  final ValueNotifier<int> logRevision = ValueNotifier(0);
+
+  void logsChanged() => logRevision.value++;
+
   Program get program => _program;
   CareLink? get link => _link;
   bool get isLinked => _link != null;

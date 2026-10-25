@@ -6,6 +6,7 @@ import '../exercises/exercise.dart';
 import '../exercises/exercise_page.dart';
 import '../link/link_screen.dart';
 import '../program/program_controller.dart';
+import '../reminders/reminders.dart';
 import '../session/session_plan.dart';
 import '../session/session_player_screen.dart';
 import '../settings/about_screen.dart';
@@ -18,11 +19,18 @@ const _weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Satu
 /// Home: today's exercises with one obvious action. Once the app is linked
 /// they come from the physio's program; until then from the starter program.
 class TodayScreen extends StatelessWidget {
-  const TodayScreen({super.key, required this.library, required this.appearance, required this.programs});
+  const TodayScreen({
+    super.key,
+    required this.library,
+    required this.appearance,
+    required this.programs,
+    required this.reminders,
+  });
 
   final ExerciseLibrary library;
   final AppearanceController appearance;
   final ProgramController programs;
+  final ReminderController reminders;
 
   static String _greeting(DateTime now) => now.hour < 12
       ? 'Good morning'
@@ -52,7 +60,7 @@ class TodayScreen extends StatelessWidget {
           IconButton(
             tooltip: 'Settings',
             icon: const Icon(Icons.settings_outlined),
-            onPressed: () => open(AboutScreen(appearance: appearance, programs: programs)),
+            onPressed: () => open(AboutScreen(appearance: appearance, programs: programs, reminders: reminders)),
           ),
           const SizedBox(width: 4),
         ],
@@ -112,7 +120,7 @@ class TodayScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 16),
                         FilledButton.icon(
-                          onPressed: () => open(SessionPlayerScreen(exercises: exercises)),
+                          onPressed: () => open(SessionPlayerScreen(entries: today, programs: programs, programId: program.id)),
                           icon: const Icon(Icons.play_arrow_rounded, size: 28),
                           label: const Text('Start session'),
                         ),
@@ -159,7 +167,12 @@ class TodayScreen extends StatelessWidget {
                             style: text.bodyMedium?.copyWith(color: muted),
                           ),
                           onTap: () => open(
-                            ExercisePage(exercise: entry.exercise, reviewedByPhysio: library.reviewedByPhysio),
+                            ExercisePage(
+                              exercise: entry.exercise,
+                              reviewedByPhysio: library.reviewedByPhysio,
+                              programs: programs,
+                              entry: entry,
+                            ),
                           ),
                         ),
                       ],

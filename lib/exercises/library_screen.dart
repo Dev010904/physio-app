@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
 
 import '../common/ui.dart';
+import '../program/program_controller.dart';
 import '../tutorials/tutorial_view.dart';
 import 'exercise.dart';
 import 'exercise_page.dart';
 
 /// Every bundled exercise, grouped by body region.
 class LibraryScreen extends StatelessWidget {
-  const LibraryScreen({super.key, required this.library});
+  const LibraryScreen({super.key, required this.library, required this.programs});
 
   final ExerciseLibrary library;
+  final ProgramController programs;
 
   @override
   Widget build(BuildContext context) {
@@ -49,6 +51,7 @@ class LibraryScreen extends StatelessWidget {
                           builder: (_) => ExercisePage(
                             exercise: exercise,
                             reviewedByPhysio: library.reviewedByPhysio,
+                            programs: programs,
                           ),
                         ),
                       ),

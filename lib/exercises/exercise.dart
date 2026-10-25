@@ -29,6 +29,17 @@ class Prescription {
     perSide: json['perSide'] as bool? ?? false,
   );
 
+  Map<String, dynamic> toJson() => {
+    'sets': sets,
+    'reps': ?reps,
+    'durationSeconds': ?durationSeconds,
+    'holdSeconds': holdSeconds,
+    'moveSeconds': moveSeconds,
+    'releaseSeconds': releaseSeconds,
+    'restSeconds': restSeconds,
+    'perSide': perSide,
+  };
+
   final int sets;
   final int? reps;
   final int? durationSeconds;
@@ -74,6 +85,17 @@ class Exercise {
     releaseLabel: json['releaseLabel'] as String? ?? 'Return',
     prescription: Prescription.fromJson(json['prescription'] as Map<String, dynamic>),
   );
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'title': title,
+    'bodyRegion': bodyRegion,
+    'equipment': equipment,
+    'steps': steps,
+    'moveLabel': moveLabel,
+    'releaseLabel': releaseLabel,
+    'prescription': prescription.toJson(),
+  };
 
   final String id;
   final String title;

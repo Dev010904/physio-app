@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'exercises/exercise.dart';
 import 'home/home_shell.dart';
 import 'onboarding/welcome.dart';
+import 'program/program_controller.dart';
 import 'settings/appearance.dart';
 import 'theme/app_theme.dart';
 
@@ -10,12 +11,21 @@ import 'theme/app_theme.dart';
 const appName = 'PhysioSathi';
 
 class PhysioApp extends StatelessWidget {
-  PhysioApp({super.key, required this.library, AppearanceController? appearance, WelcomeController? welcome})
-    : appearance = appearance ?? AppearanceController(),
-      welcome = welcome ?? WelcomeController(seen: true);
+  PhysioApp({
+    super.key,
+    required this.library,
+    AppearanceController? appearance,
+    WelcomeController? welcome,
+    ProgramController? programs,
+  }) : appearance = appearance ?? AppearanceController(),
+       welcome = welcome ?? WelcomeController(seen: true),
+       programs = programs ?? ProgramController.starter(library);
 
   final ExerciseLibrary library;
   final AppearanceController appearance;
+
+  /// Today's program: the physio's once linked, else the starter.
+  final ProgramController programs;
 
   /// First launch shows the welcome pages before Today.
   final WelcomeController welcome;
@@ -35,7 +45,7 @@ class PhysioApp extends StatelessWidget {
           builder: (context, seen, _) => AnimatedSwitcher(
             duration: const Duration(milliseconds: 300),
             child: seen
-                ? HomeShell(library: library, appearance: appearance)
+                ? HomeShell(library: library, appearance: appearance, programs: programs)
                 : WelcomeScreen(onDone: welcome.markSeen),
           ),
         ),

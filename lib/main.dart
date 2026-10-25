@@ -6,8 +6,11 @@ import 'app.dart';
 import 'config/env.dart';
 import 'debug/frame_stats.dart';
 import 'exercises/exercise.dart';
+import 'data/local_store.dart';
 import 'onboarding/welcome.dart';
+import 'program/program_controller.dart';
 import 'settings/appearance.dart';
+import 'sync/supabase_backend.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,7 +28,14 @@ Future<void> main() async {
   final library = await ExerciseLibrary.load();
   final appearance = await AppearanceController.load();
   final welcome = await WelcomeController.load();
-  final app = PhysioApp(library: library, appearance: appearance, welcome: welcome);
+  final programs = await ProgramController.load(
+    library: library,
+    store: await SqliteStore.open(),
+    backend: Env.hasSupabase ? SupabaseBackend(Supabase.instance.client) : null,
+  );
+  // Sends anything logged offline and picks up program changes, in the background.
+  programs.sync();
+  final app = PhysioApp(library: library, appearance: appearance, welcome: welcome, programs: programs);
 
   if (!Env.hasSentry) {
     runApp(app);

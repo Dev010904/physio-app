@@ -7,7 +7,14 @@ Checked against the Play Console Help pages on 2026-10-30:
 
 ## 1. Make the upload key (you do this once)
 
-The upload key's password is yours to choose and keep, so this step is yours.
+**Done on 30 Oct 2026.** The key is `C:\Users\hp602\keys\physiosathi-upload.jks`
+(alias `upload`, upload certificate SHA-256
+`BF:9E:CA:02:3F:89:75:E1:FD:BB:67:75:2D:52:DC:20:6C:95:FF:AC:87:40:21:0C:5E:AD:B4:F3:13:4F:AC:36`).
+Its random password is only in `android/key.properties`, which git ignores.
+Back up both files somewhere safe that isn't this PC, such as your password
+manager. Release bundles are now signed with this key.
+
+How it was made, in case you need another:
 
 1. Run this command and answer its questions. Choose a strong password.
 

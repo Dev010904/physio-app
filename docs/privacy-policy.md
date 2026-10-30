@@ -63,8 +63,9 @@ microphone.
 When the app crashes or has an error, it sends a crash report to Sentry, a
 service that helps us fix bugs. A report holds the error details, the phone
 model, Android version and app version, and a random installation ID. Reports
-are set not to include your name, your exercise data, your IP address or
-screenshots. A sample of reports also measures how fast screens load. Sentry
+are set not to include your name, your exercise data or screenshots.
+[Turn on "Prevent Storing of IP Addresses" in the Sentry project, then say
+here that IP addresses are not stored.] A sample of reports also measures how fast screens load. Sentry
 stores reports in the United States.
 
 ## Other things the app uses

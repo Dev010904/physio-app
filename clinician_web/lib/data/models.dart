@@ -233,10 +233,10 @@ class ExerciseLog {
   final String repSource;
   final double? peakAngle;
 
-  /// "2 of 2 sets · 20 reps".
+  /// "2 of 2 sets · 20 reps", "1 of 1 set · 1 rep".
   String get doneLabel {
-    final sets = plannedSets == null ? '$setsDone sets' : '$setsDone of $plannedSets sets';
-    final reps = repsDone == null ? '' : ' · $repsDone reps${repSource == 'camera' ? ' (camera)' : ''}';
+    final sets = plannedSets == null ? plural(setsDone, 'set') : '$setsDone of ${plural(plannedSets!, 'set')}';
+    final reps = repsDone == null ? '' : ' · ${plural(repsDone!, 'rep')}${repSource == 'camera' ? ' (camera)' : ''}';
     return '$sets$reps';
   }
 }
@@ -319,6 +319,16 @@ class PatientDetail {
   ProgramVersion? get current => programs.isEmpty ? null : programs.first;
 
   List<FlagEntry> get openFlags => [for (final f in flags) if (f.isOpen) f];
+
+  /// The flag that ended a session early, by session id. The phone stops the
+  /// session on high pain or a warning sign and puts the session's id in the
+  /// flag's details; session_logs has no column for it. [flags] is newest
+  /// first, so a later (older) entry wins: the flag that stopped the session.
+  late final Map<String, FlagEntry> safetyStops = {
+    for (final f in flags)
+      if ((f.reason == 'high_pain' || f.reason == 'red_flag') && f.details['session_id'] is String)
+        f.details['session_id'] as String: f,
+  };
 
   /// Pain scores per exercise, oldest first, with the exercise's title.
   List<({String title, List<PainPoint> points})> get painTrends {

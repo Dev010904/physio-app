@@ -268,13 +268,19 @@ class _LoaderState<T> extends State<Loader<T>> {
         }
         final Widget child;
         if (snap.hasError && snap.connectionState == ConnectionState.done) {
-          child = ErrorPanel(key: const ValueKey('error'), error: snap.error!, onRetry: _reload);
+          child = Center(key: const ValueKey('error'), child: ErrorPanel(error: snap.error!, onRetry: _reload));
         } else if (_hasLast) {
           child = KeyedSubtree(key: const ValueKey('data'), child: widget.builder(context, _last as T, _reloadAndWait));
         } else {
-          child = LoadingPanel(key: const ValueKey('loading'), label: widget.loadingLabel);
+          child = Center(key: const ValueKey('loading'), child: LoadingPanel(label: widget.loadingLabel));
         }
-        return AnimatedSwitcher(duration: const Duration(milliseconds: 220), child: child);
+        // The default layout centres a page that is shorter than the screen;
+        // fill the space instead, so pages start at the top.
+        return AnimatedSwitcher(
+          duration: const Duration(milliseconds: 220),
+          layoutBuilder: (current, previous) => Stack(fit: StackFit.expand, children: [...previous, ?current]),
+          child: child,
+        );
       },
     );
   }

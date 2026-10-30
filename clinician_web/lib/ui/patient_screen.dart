@@ -88,9 +88,9 @@ class _PatientBodyState extends State<_PatientBody> {
     final now = DateTime.now();
     final String status;
     if (p.linked) {
-      status = p.linkedAt == null ? 'Phone linked' : 'Phone linked since ${relativeDay(p.linkedAt!, now)}';
+      status = p.linkedAt == null ? 'Phone linked' : 'Phone linked ${relativeDay(p.linkedAt!, now, inSentence: true)}';
     } else if (p.codeExpiresAt != null && p.codeExpiresAt!.isAfter(now)) {
-      status = 'Not linked yet · code works until ${relativeDay(p.codeExpiresAt!, now)}';
+      status = 'Not linked yet · code works until ${dayLabel(p.codeExpiresAt!)}';
     } else {
       status = 'Not linked · the code has expired, make a new one';
     }
@@ -145,7 +145,7 @@ class _PatientBodyState extends State<_PatientBody> {
           left: [
             _AdherencePanel(adherence: a),
             _PainPanel(detail: d),
-            _SessionsPanel(sessions: d.sessions),
+            _SessionsPanel(detail: d),
           ],
           right: [
             _FlagsPanel(detail: d),
@@ -235,7 +235,7 @@ class _Stat extends StatelessWidget {
                 ? 'Starts when the phone is linked'
                 : rate == null
                 ? 'Nothing scheduled yet'
-                : '${counts.done} of ${counts.scheduled} scheduled days',
+                : '${counts.done} of ${plural(counts.scheduled, 'scheduled day')}',
             style: theme.textTheme.bodyMedium,
           ),
         ],
@@ -382,9 +382,9 @@ class _PainPill extends StatelessWidget {
 // ------------------------------------------------------------------ sessions
 
 class _SessionsPanel extends StatefulWidget {
-  const _SessionsPanel({required this.sessions});
+  const _SessionsPanel({required this.detail});
 
-  final List<SessionEntry> sessions;
+  final PatientDetail detail;
 
   @override
   State<_SessionsPanel> createState() => _SessionsPanelState();
@@ -396,7 +396,7 @@ class _SessionsPanelState extends State<_SessionsPanel> {
 
   @override
   Widget build(BuildContext context) {
-    final sessions = widget.sessions;
+    final sessions = widget.detail.sessions;
     final shown = _all ? sessions : sessions.take(_first).toList();
     return Panel(
       title: 'Recent sessions',
@@ -407,7 +407,8 @@ class _SessionsPanelState extends State<_SessionsPanel> {
           : Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                for (final s in shown) _SessionTile(session: s),
+                for (final s in shown)
+                  _SessionTile(session: s, stop: widget.detail.safetyStops[s.id], exerciseTitle: widget.detail.exerciseTitleForSlug),
                 if (sessions.length > _first)
                   Align(
                     alignment: Alignment.centerLeft,
@@ -424,9 +425,13 @@ class _SessionsPanelState extends State<_SessionsPanel> {
 }
 
 class _SessionTile extends StatelessWidget {
-  const _SessionTile({required this.session});
+  const _SessionTile({required this.session, this.stop, this.exerciseTitle});
 
   final SessionEntry session;
+
+  /// The flag that stopped this session for safety, if one did.
+  final FlagEntry? stop;
+  final String? Function(String slug)? exerciseTitle;
 
   @override
   Widget build(BuildContext context) {
@@ -437,7 +442,7 @@ class _SessionTile extends StatelessWidget {
     final feedbackPill = f?.level == null
         ? null
         : Pill(
-            'Felt ${f!.level!.label.toLowerCase()}',
+            'Felt ${f!.level == FeedbackLevel.ok ? 'OK' : f.level!.label.toLowerCase()}',
             icon: switch (f.level!) {
               FeedbackLevel.easy => Icons.sentiment_very_satisfied_outlined,
               FeedbackLevel.ok => Icons.sentiment_neutral_outlined,
@@ -465,11 +470,21 @@ class _SessionTile extends StatelessWidget {
             children: [
               ?feedbackPill,
               Pill('${session.exercises.length} ${session.exercises.length == 1 ? 'exercise' : 'exercises'}', icon: Icons.fitness_center),
+              if (stop != null) const Pill('Stopped for safety', icon: Icons.front_hand_outlined, tone: Tone.bad),
               if (pain != null) _PainPill(pain: pain, prefix: 'Pain up to'),
             ],
           ),
         ),
         children: [
+          if (stop != null)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: Notice(
+                icon: Icons.front_hand_outlined,
+                tone: Tone.bad,
+                text: 'Stopped for safety: ${flagDetailsLabel(stop!.reason, stop!.details, exerciseTitle: exerciseTitle)}',
+              ),
+            ),
           if (f?.text != null)
             Padding(
               padding: const EdgeInsets.only(bottom: 10),
@@ -570,7 +585,11 @@ class _FlagsPanelState extends State<_FlagsPanel> {
     final c = theme.colorScheme;
     final open = widget.detail.openFlags;
     final resolved = [for (final f in widget.detail.flags) if (!f.isOpen) f].take(3).toList();
-    String details(FlagEntry f) => flagDetailsLabel(f.reason, f.details, exerciseTitle: widget.detail.exerciseTitleForSlug);
+    String details(FlagEntry f) {
+      final text = flagDetailsLabel(f.reason, f.details, exerciseTitle: widget.detail.exerciseTitleForSlug);
+      final stopped = widget.detail.safetyStops[f.details['session_id']] == f;
+      return stopped ? '$text The session was stopped.' : text;
+    }
     IconData icon(String reason) => switch (reason) {
       'red_flag' => Icons.warning_amber_rounded,
       'high_pain' => Icons.healing,
@@ -644,7 +663,7 @@ class _FlagsPanelState extends State<_FlagsPanel> {
               Padding(
                 padding: const EdgeInsets.only(top: 8),
                 child: Text(
-                  '${flagReasonLabel(f.reason)} · ${details(f)} · resolved ${f.resolvedAt == null ? '' : relativeDay(f.resolvedAt!, DateTime.now()).toLowerCase()}',
+                  '${flagReasonLabel(f.reason)} · ${details(f)} · resolved ${f.resolvedAt == null ? '' : relativeDay(f.resolvedAt!, DateTime.now(), inSentence: true)}',
                   style: theme.textTheme.bodyMedium?.copyWith(color: c.onSurfaceVariant),
                 ),
               ),
@@ -690,7 +709,7 @@ class _ProgramPanel extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            'Published ${relativeDay(p.createdAt, DateTime.now()).toLowerCase()}${p.authorName == null ? '' : ' by ${p.authorName}'} · longest day ${minutesLabel(longest)}',
+            'Published ${relativeDay(p.createdAt, DateTime.now(), inSentence: true)}${p.authorName == null ? '' : ' by ${p.authorName}'} · longest day ${minutesLabel(longest)}',
             style: theme.textTheme.bodyMedium?.copyWith(color: c.onSurfaceVariant),
           ),
           const SizedBox(height: 12),

@@ -50,6 +50,9 @@ Uri whatsAppUri(String message) => Uri.parse('https://wa.me/?text=${Uri.encodeCo
 // apps show as is.
 Uri smsUri(String message) => Uri.parse('sms:?body=${Uri.encodeComponent(message)}');
 
+/// "1 set", "2 sets"; [many] for irregular words.
+String plural(int n, String one, [String? many]) => '$n ${n == 1 ? one : many ?? '${one}s'}';
+
 const _months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const weekdayShort = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
@@ -57,15 +60,17 @@ const weekdayShort = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 String dayLabel(DateTime d) => '${weekdayShort[d.weekday - 1]} ${d.day} ${_months[d.month - 1]}';
 
 /// "Today", "Yesterday", "3 days ago", then "12 Oct" (with the year if not this one).
-String relativeDay(DateTime day, DateTime now) {
+/// [inSentence] gives "today", "yesterday", "3 days ago" and "on 12 Oct", to
+/// follow words like "Published".
+String relativeDay(DateTime day, DateTime now, {bool inSentence = false}) {
   final d = DateTime(day.year, day.month, day.day);
   final t = DateTime(now.year, now.month, now.day);
   final diff = t.difference(d).inDays;
-  if (diff == 0) return 'Today';
-  if (diff == 1) return 'Yesterday';
+  if (diff == 0) return inSentence ? 'today' : 'Today';
+  if (diff == 1) return inSentence ? 'yesterday' : 'Yesterday';
   if (diff > 1 && diff < 7) return '$diff days ago';
-  final base = '${d.day} ${_months[d.month - 1]}';
-  return d.year == t.year ? base : '$base ${d.year}';
+  final base = '${d.day} ${_months[d.month - 1]}${d.year == t.year ? '' : ' ${d.year}'}';
+  return inSentence ? 'on $base' : base;
 }
 
 /// "12 Oct 2026, 4:05 pm".
@@ -123,10 +128,10 @@ String flagDetailsLabel(String reason, Map<String, dynamic> details, {String? Fu
         final String other => other,
         _ => 'A warning sign',
       };
-      return '$symptom$where. The session was stopped.';
+      return '$symptom$where.';
     case 'missed_days':
       final days = details['days'];
-      return days == null ? 'Several scheduled days were missed.' : '$days scheduled days missed in a row.';
+      return days is int ? '${plural(days, 'scheduled day')} missed in a row.' : 'Several scheduled days were missed.';
     default:
       return details.isEmpty ? '' : details.toString();
   }

@@ -24,7 +24,7 @@ class PainChart extends StatelessWidget {
     final latest = points.isEmpty ? null : points.last.pain;
     final highest = points.isEmpty ? null : points.map((p) => p.pain).reduce((a, b) => a > b ? a : b);
     return Semantics(
-      label: 'Pain chart with ${points.length} scores. Latest $latest out of 10, highest $highest.',
+      label: 'Pain chart with ${plural(points.length, 'score')}. Latest $latest out of 10, highest $highest.',
       child: SizedBox(
         height: height,
         width: double.infinity,

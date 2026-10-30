@@ -210,7 +210,7 @@ class _BuilderState extends State<_Builder> {
               subtitle: Text(
                 latest == null
                     ? 'A new program. Add exercises, set each dose, then publish.'
-                    : 'Starting from version ${latest.version}, published ${relativeDay(latest.createdAt, DateTime.now()).toLowerCase()}. '
+                    : 'Starting from version ${latest.version}, published ${relativeDay(latest.createdAt, DateTime.now(), inSentence: true)}. '
                           'Publishing makes version ${_baseVersion + 1}.',
               ),
               actions: [

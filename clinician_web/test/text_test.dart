@@ -66,6 +66,15 @@ void main() {
       expect(relativeDay(DateTime(2025, 12, 31), now), '31 Dec 2025');
     });
 
+    test('relative days inside a sentence', () {
+      final now = DateTime(2026, 10, 25, 9);
+      expect('Published ${relativeDay(DateTime(2026, 10, 25), now, inSentence: true)}', 'Published today');
+      expect('Published ${relativeDay(DateTime(2026, 10, 24), now, inSentence: true)}', 'Published yesterday');
+      expect('Published ${relativeDay(DateTime(2026, 10, 22), now, inSentence: true)}', 'Published 3 days ago');
+      expect('Published ${relativeDay(DateTime(2026, 10, 12), now, inSentence: true)}', 'Published on 12 Oct');
+      expect('Published ${relativeDay(DateTime(2025, 12, 31), now, inSentence: true)}', 'Published on 31 Dec 2025');
+    });
+
     test('minutes round up', () {
       expect(minutesLabel(const Duration(seconds: 61)), 'about 2 min');
       expect(minutesLabel(Duration.zero), 'rest day');
@@ -79,7 +88,16 @@ void main() {
 
     test('flag details in plain words', () {
       expect(flagDetailsLabel('high_pain', {'pain': 8, 'exercise': 'wall_squat'}, exerciseTitle: (_) => 'Wall squat'), 'Pain 8 out of 10 during Wall squat.');
-      expect(flagDetailsLabel('red_flag', {'symptom': 'chestPain'}), 'Chest pain or tightness. The session was stopped.');
+      expect(flagDetailsLabel('red_flag', {'symptom': 'chestPain'}), 'Chest pain or tightness.');
+      expect(flagDetailsLabel('missed_days', {'days': 1}), '1 scheduled day missed in a row.');
+      expect(flagDetailsLabel('missed_days', {'days': 4}), '4 scheduled days missed in a row.');
+    });
+
+    test('plurals', () {
+      expect(plural(1, 'set'), '1 set');
+      expect(plural(0, 'set'), '0 sets');
+      expect(plural(3, 'scheduled day'), '3 scheduled days');
+      expect(plural(2, 'person', 'people'), '2 people');
       expect(flagDetailsLabel('high_pain', {'pain': 9, 'exercise': 'heel_raise'}), 'Pain 9 out of 10 during heel raise.');
     });
   });

@@ -1,6 +1,14 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
     <!-- Daily reminder: reschedule after a reboot (flutter_local_notifications). -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <!-- Camera rep counting: frames are read in memory only. The camera plugin
+         also asks for the microphone and storage, which the app never uses. -->
+    <uses-permission android:name="android.permission.CAMERA"/>
+    <uses-permission android:name="android.permission.RECORD_AUDIO" tools:node="remove"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" tools:node="remove"/>
+    <!-- The app works without a camera; counting is optional. -->
+    <uses-feature android:name="android.hardware.camera.any" android:required="false" tools:replace="android:required"/>
     <application
         android:label="PhysioSathi"
         android:name="${applicationName}"

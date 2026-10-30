@@ -212,5 +212,21 @@
   "cueStart": "Start",
   "cueNextExercise": "Next, {exercise}",
   "@cueNextExercise": {"placeholders": {"exercise": {"type": "String"}}},
-  "cueSessionDone": "Session complete. Well done."
+  "cueSessionDone": "Session complete. Well done.",
+
+  "countWithCamera": "Count with camera",
+  "stopCamera": "Stop camera",
+  "cameraGuideTitle": "Place your phone",
+  "cameraPlaceSideStanding": "Stand the phone up about 3 steps to your side, so your whole body shows, head to feet.",
+  "cameraPlaceSideLying": "Stand the phone up on the floor about 2 steps to your side, so your whole body shows while you lie down.",
+  "cameraPlaceFrontLying": "Stand the phone up on the floor about 2 steps in front of you, so your hips and knees show while you lie on your side.",
+  "cameraGuideTips": "Use good light and keep the phone still. The timer keeps going; the camera only counts your reps.",
+  "cameraPrivacy": "The picture stays on this phone. Nothing is recorded or sent.",
+  "startCamera": "Start camera",
+  "cameraStarting": "Starting camera…",
+  "cameraStepBack": "Can't see you fully. Move so your whole body shows.",
+  "cameraBest": "Best {degrees}°",
+  "@cameraBest": {"placeholders":{"degrees":{"type":"int"}}},
+  "cameraDenied": "Camera permission is off, so reps follow the timer.",
+  "cameraFailed": "The camera could not start, so reps follow the timer."
 }

@@ -65,6 +65,24 @@ void main() {
     expect(session.exercises.firstWhere((e) => e.exerciseId == 'calf_stretch').pain, isNull);
   });
 
+  test("reps the camera counted replace the timer's, with the best movement", () async {
+    final store = MemoryStore();
+    final entries = [ProgramEntry(exercise: byId['wall_squat']!), ProgramEntry(exercise: byId['glute_bridge']!)];
+    final log = logger(store, entries);
+    for (final phase in SessionPlan.build([for (final e in entries) e.exercise]).phases) {
+      log.phaseEntered(phase);
+    }
+    log.cameraCounted(0, reps: 17, peak: 52.4);
+    await log.exerciseDone(0, const PainAnswer(pain: 1));
+    await log.exerciseDone(1, const PainAnswer(pain: 1));
+
+    final rows = (await store.sessions()).single.exercises;
+    final squat = rows.firstWhere((e) => e.exerciseId == 'wall_squat');
+    expect((squat.repsDone, squat.repSource, squat.peakAngle), (17, 'camera', 52.4));
+    final bridge = rows.firstWhere((e) => e.exerciseId == 'glute_bridge');
+    expect((bridge.repsDone, bridge.repSource, bridge.peakAngle), (20, 'manual', null));
+  });
+
   test('skipping part of an exercise lowers the sets and reps done', () async {
     final store = MemoryStore();
     final entries = [ProgramEntry(exercise: byId['quad_set']!)];

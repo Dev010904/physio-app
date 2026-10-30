@@ -612,4 +612,56 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get cueSessionDone => 'सत्र पूरा हुआ। बहुत बढ़िया।';
+
+  @override
+  String get countWithCamera => 'कैमरे से गिनें';
+
+  @override
+  String get stopCamera => 'कैमरा बंद करें';
+
+  @override
+  String get cameraGuideTitle => 'फ़ोन ऐसे रखें';
+
+  @override
+  String get cameraPlaceSideStanding =>
+      'फ़ोन को अपनी बगल में लगभग 3 कदम दूर खड़ा रखें, ताकि सिर से पैर तक पूरा शरीर दिखे।';
+
+  @override
+  String get cameraPlaceSideLying =>
+      'फ़ोन को ज़मीन पर अपनी बगल में लगभग 2 कदम दूर खड़ा रखें, ताकि लेटे हुए पूरा शरीर दिखे।';
+
+  @override
+  String get cameraPlaceFrontLying =>
+      'फ़ोन को ज़मीन पर अपने सामने लगभग 2 कदम दूर खड़ा रखें, ताकि करवट लेटे हुए कूल्हे और घुटने दिखें।';
+
+  @override
+  String get cameraGuideTips =>
+      'अच्छी रोशनी रखें और फ़ोन को हिलने न दें। टाइमर चलता रहेगा; कैमरा सिर्फ़ आपकी गिनती करेगा।';
+
+  @override
+  String get cameraPrivacy =>
+      'तस्वीर इसी फ़ोन पर रहती है। कुछ भी रिकॉर्ड या भेजा नहीं जाता।';
+
+  @override
+  String get startCamera => 'कैमरा शुरू करें';
+
+  @override
+  String get cameraStarting => 'कैमरा शुरू हो रहा है…';
+
+  @override
+  String get cameraStepBack =>
+      'आप पूरे नहीं दिख रहे। ऐसे आएँ कि पूरा शरीर दिखे।';
+
+  @override
+  String cameraBest(int degrees) {
+    return 'सबसे ज़्यादा $degrees°';
+  }
+
+  @override
+  String get cameraDenied =>
+      'कैमरे की अनुमति बंद है, इसलिए गिनती टाइमर से होगी।';
+
+  @override
+  String get cameraFailed =>
+      'कैमरा शुरू नहीं हो सका, इसलिए गिनती टाइमर से होगी।';
 }

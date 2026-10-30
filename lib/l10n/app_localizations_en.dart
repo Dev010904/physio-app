@@ -637,4 +637,56 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get cueSessionDone => 'Session complete. Well done.';
+
+  @override
+  String get countWithCamera => 'Count with camera';
+
+  @override
+  String get stopCamera => 'Stop camera';
+
+  @override
+  String get cameraGuideTitle => 'Place your phone';
+
+  @override
+  String get cameraPlaceSideStanding =>
+      'Stand the phone up about 3 steps to your side, so your whole body shows, head to feet.';
+
+  @override
+  String get cameraPlaceSideLying =>
+      'Stand the phone up on the floor about 2 steps to your side, so your whole body shows while you lie down.';
+
+  @override
+  String get cameraPlaceFrontLying =>
+      'Stand the phone up on the floor about 2 steps in front of you, so your hips and knees show while you lie on your side.';
+
+  @override
+  String get cameraGuideTips =>
+      'Use good light and keep the phone still. The timer keeps going; the camera only counts your reps.';
+
+  @override
+  String get cameraPrivacy =>
+      'The picture stays on this phone. Nothing is recorded or sent.';
+
+  @override
+  String get startCamera => 'Start camera';
+
+  @override
+  String get cameraStarting => 'Starting camera…';
+
+  @override
+  String get cameraStepBack =>
+      'Can\'t see you fully. Move so your whole body shows.';
+
+  @override
+  String cameraBest(int degrees) {
+    return 'Best $degrees°';
+  }
+
+  @override
+  String get cameraDenied =>
+      'Camera permission is off, so reps follow the timer.';
+
+  @override
+  String get cameraFailed =>
+      'The camera could not start, so reps follow the timer.';
 }

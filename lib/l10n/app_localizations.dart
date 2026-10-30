@@ -1093,6 +1093,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Session complete. Well done.'**
   String get cueSessionDone;
+
+  /// No description provided for @countWithCamera.
+  ///
+  /// In en, this message translates to:
+  /// **'Count with camera'**
+  String get countWithCamera;
+
+  /// No description provided for @stopCamera.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop camera'**
+  String get stopCamera;
+
+  /// No description provided for @cameraGuideTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Place your phone'**
+  String get cameraGuideTitle;
+
+  /// No description provided for @cameraPlaceSideStanding.
+  ///
+  /// In en, this message translates to:
+  /// **'Stand the phone up about 3 steps to your side, so your whole body shows, head to feet.'**
+  String get cameraPlaceSideStanding;
+
+  /// No description provided for @cameraPlaceSideLying.
+  ///
+  /// In en, this message translates to:
+  /// **'Stand the phone up on the floor about 2 steps to your side, so your whole body shows while you lie down.'**
+  String get cameraPlaceSideLying;
+
+  /// No description provided for @cameraPlaceFrontLying.
+  ///
+  /// In en, this message translates to:
+  /// **'Stand the phone up on the floor about 2 steps in front of you, so your hips and knees show while you lie on your side.'**
+  String get cameraPlaceFrontLying;
+
+  /// No description provided for @cameraGuideTips.
+  ///
+  /// In en, this message translates to:
+  /// **'Use good light and keep the phone still. The timer keeps going; the camera only counts your reps.'**
+  String get cameraGuideTips;
+
+  /// No description provided for @cameraPrivacy.
+  ///
+  /// In en, this message translates to:
+  /// **'The picture stays on this phone. Nothing is recorded or sent.'**
+  String get cameraPrivacy;
+
+  /// No description provided for @startCamera.
+  ///
+  /// In en, this message translates to:
+  /// **'Start camera'**
+  String get startCamera;
+
+  /// No description provided for @cameraStarting.
+  ///
+  /// In en, this message translates to:
+  /// **'Starting camera…'**
+  String get cameraStarting;
+
+  /// No description provided for @cameraStepBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t see you fully. Move so your whole body shows.'**
+  String get cameraStepBack;
+
+  /// No description provided for @cameraBest.
+  ///
+  /// In en, this message translates to:
+  /// **'Best {degrees}°'**
+  String cameraBest(int degrees);
+
+  /// No description provided for @cameraDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera permission is off, so reps follow the timer.'**
+  String get cameraDenied;
+
+  /// No description provided for @cameraFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The camera could not start, so reps follow the timer.'**
+  String get cameraFailed;
 }
 
 class _AppLocalizationsDelegate

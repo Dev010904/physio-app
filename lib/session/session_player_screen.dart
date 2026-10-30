@@ -3,6 +3,9 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
+import '../camera/camera_count.dart';
+import '../camera/camera_view.dart';
+import '../camera/pose_rules.dart';
 import '../common/ui.dart';
 import '../exercises/exercise.dart';
 import '../l10n/l10n.dart';
@@ -52,6 +55,11 @@ class _SessionPlayerScreenState extends State<SessionPlayerScreen>
   int _exerciseIndex = 0;
   bool _asking = false;
 
+  // Camera counting stays on for the session once chosen, with a fresh
+  // count for each exercise the camera can read.
+  bool _cameraOn = false;
+  CameraCount? _count;
+
   @override
   void initState() {
     super.initState();
@@ -66,6 +74,7 @@ class _SessionPlayerScreenState extends State<SessionPlayerScreen>
 
   @override
   void dispose() {
+    _count?.dispose();
     _controller.removeListener(_onProgress);
     _lifecycle.dispose();
     _controller.dispose();
@@ -84,8 +93,62 @@ class _SessionPlayerScreenState extends State<SessionPlayerScreen>
     if (index > _exerciseIndex) {
       final done = _exerciseIndex;
       _exerciseIndex = index;
+      final count = _count;
+      if (count != null && count.exerciseIndex == done && count.wholeExercise) {
+        _log.cameraCounted(done, reps: count.counter.reps, peak: count.counter.peak);
+      }
+      _setCount(_cameraOn ? _newCount(index) : null);
       _askHowItFelt(done);
     }
+  }
+
+  CameraCount? _newCount(int index) {
+    final rule = index < _exercises.length ? poseRules[_exercises[index].id] : null;
+    // Counted from before the first set, the camera's count can stand in
+    // for the timer's; switched on midway, it is shown but not logged.
+    return rule == null ? null : CameraCount(index, rule, wholeExercise: _log.setsDone(index) == 0);
+  }
+
+  void _setCount(CameraCount? count) {
+    final old = _count;
+    setState(() => _count = count);
+    // The camera view lets go of the old count when it next builds.
+    if (old != null) WidgetsBinding.instance.addPostFrameCallback((_) => old.dispose());
+  }
+
+  /// New reps may begin only while the timer runs a rep, not in rests.
+  bool _canStartRep() =>
+      !_controller.isPaused &&
+      !_controller.isFinished &&
+      const {PhaseKind.move, PhaseKind.hold, PhaseKind.release}.contains(_controller.phase.kind);
+
+  Future<void> _toggleCamera() async {
+    if (_cameraOn) {
+      _cameraOn = false;
+      _setCount(null);
+      return;
+    }
+    final index = _controller.phase.exerciseIndex;
+    final rule = poseRules[_exercises[index].id];
+    if (rule == null) return;
+    final wasPaused = _controller.isPaused;
+    _controller.pause();
+    final start = await showCameraGuide(context, rule.placement);
+    if (!mounted) return;
+    if (!wasPaused) _controller.resume();
+    if (!start || _controller.isFinished) return;
+    _cameraOn = true;
+    _setCount(_newCount(_controller.phase.exerciseIndex));
+  }
+
+  void _cameraProblem(CameraProblem problem) {
+    if (!mounted) return;
+    _cameraOn = false;
+    _setCount(null);
+    final l = context.l10n;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(problem == CameraProblem.denied ? l.cameraDenied : l.cameraFailed)),
+    );
   }
 
   Future<void> _askHowItFelt(int index) async {
@@ -229,7 +292,14 @@ class _SessionPlayerScreenState extends State<SessionPlayerScreen>
             ),
             body: finished
                 ? _CompleteView(controller: _controller, onFeedback: _finish)
-                : _PlayerView(controller: _controller),
+                : _PlayerView(
+                    controller: _controller,
+                    camera: _count,
+                    cameraOn: _cameraOn,
+                    onToggleCamera: poseRules.containsKey(_exercises[_controller.phase.exerciseIndex].id) ? _toggleCamera : null,
+                    canStartRep: _canStartRep,
+                    onCameraProblem: _cameraProblem,
+                  ),
           ),
         );
       },
@@ -238,9 +308,25 @@ class _SessionPlayerScreenState extends State<SessionPlayerScreen>
 }
 
 class _PlayerView extends StatelessWidget {
-  const _PlayerView({required this.controller});
+  const _PlayerView({
+    required this.controller,
+    required this.camera,
+    required this.cameraOn,
+    required this.onToggleCamera,
+    required this.canStartRep,
+    required this.onCameraProblem,
+  });
 
   final SessionController controller;
+
+  /// The camera's count for this exercise, shown in place of the footage.
+  final CameraCount? camera;
+  final bool cameraOn;
+
+  /// Null when the camera cannot count this exercise.
+  final VoidCallback? onToggleCamera;
+  final bool Function() canStartRep;
+  final ValueChanged<CameraProblem> onCameraProblem;
 
   @override
   Widget build(BuildContext context) {
@@ -276,6 +362,12 @@ class _PlayerView extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(_detailLine(l, phase), style: text.bodyLarge?.copyWith(color: muted), textAlign: TextAlign.center),
+                if (onToggleCamera != null)
+                  TextButton.icon(
+                    onPressed: onToggleCamera,
+                    icon: Icon(cameraOn ? Icons.videocam_off_outlined : Icons.videocam_outlined),
+                    label: Text(cameraOn ? l.stopCamera : l.countWithCamera),
+                  ),
               ],
             ),
           ),
@@ -289,7 +381,8 @@ class _PlayerView extends StatelessWidget {
                   // The footage moves with the reps, so it gets the most room;
                   // on short screens it steps aside so the timer always fits.
                   final tutorial = tutorials[exercise.id];
-                  final showTutorial = tutorial != null && box.maxHeight >= 420;
+                  final count = camera;
+                  final showTutorial = (tutorial != null || count != null) && box.maxHeight >= 420;
                   // Room left after 12 above, 16 between and 12 below.
                   final room = box.maxHeight - (showTutorial ? 40 : 24);
                   final tutorialSize = showTutorial ? math.min(box.maxWidth - 40, (room * 0.5).clamp(150.0, 340.0)) : 0.0;
@@ -304,11 +397,17 @@ class _PlayerView extends StatelessWidget {
                             color: Brand.of(context).soft,
                             child: SizedBox.square(
                               dimension: tutorialSize,
-                              child: TutorialFrames(
-                                tutorial: tutorial,
-                                progress: () => tutorialProgress(controller, tutorial, exercise),
-                                repaint: controller.frames,
-                              ),
+                              child: count != null
+                                  // Tapping the picture should not pause the session by accident.
+                                  ? GestureDetector(
+                                      onTap: () {},
+                                      child: CameraPoseView(count: count, canStart: canStartRep, onProblem: onCameraProblem),
+                                    )
+                                  : TutorialFrames(
+                                      tutorial: tutorial!,
+                                      progress: () => tutorialProgress(controller, tutorial, exercise),
+                                      repaint: controller.frames,
+                                    ),
                             ),
                           ),
                         ),

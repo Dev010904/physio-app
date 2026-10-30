@@ -46,6 +46,7 @@ class SessionLogger {
   final _sets = <int, Set<int>>{};
   final _reps = <int, Set<String>>{};
   final _recorded = <int>{};
+  final _camera = <int, ({int reps, double? peak})>{};
   Future<void>? _started;
   bool _ended = false;
 
@@ -76,10 +77,15 @@ class SessionLogger {
 
   bool isRecorded(int index) => _recorded.contains(index);
 
+  /// Reps the camera counted over the whole of exercise [index]; they
+  /// replace the timer's count in the log.
+  void cameraCounted(int index, {required int reps, double? peak}) => _camera[index] = (reps: reps, peak: peak);
+
   Future<void> exerciseDone(int index, PainAnswer answer) async {
     if (!_recorded.add(index)) return;
     await start();
     final entry = entries[index];
+    final camera = _camera[index];
     await store.addExercise(ExerciseRecord(
       id: _newId(),
       sessionId: sessionId,
@@ -87,7 +93,9 @@ class SessionLogger {
       itemId: entry.itemId,
       setsDone: setsDone(index),
       setsPlanned: entry.exercise.prescription.sets,
-      repsDone: repsDone(index),
+      repsDone: camera?.reps ?? repsDone(index),
+      repSource: camera == null ? 'manual' : 'camera',
+      peakAngle: camera?.peak,
       pain: answer.pain,
       note: (answer.note?.trim().isEmpty ?? true) ? null : answer.note!.trim(),
       shareNote: answer.shareNote,

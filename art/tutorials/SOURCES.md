@@ -3,7 +3,7 @@
 The app plays `assets/tutorials/<id>.webp`, built from these files by
 `tool/build_tutorials.sh`. Nothing in this folder ships in the app.
 
-Each tutorial was made in two steps (2026-10-19 and 2026-10-20):
+Each tutorial was made in two steps (2026-10-19 to 2026-10-25):
 
 1. **Frames** (`frames/`): start and end images generated with Canva AI image
    generation (Magic Media) in the owner's Canva account. Every frame uses the
@@ -12,7 +12,8 @@ Each tutorial was made in two steps (2026-10-19 and 2026-10-20):
    teal = loosening.
 2. **Motion** (`videos/`): Wan 2.2 first-last-frame interpolation (Apache-2.0)
    on the Hugging Face Space `mcp-tools/wan-2-2-first-last-frame`, run from the
-   owner's Hugging Face account (opsongs91). 480 x 480, 16 fps, 3 s.
+   owner's Hugging Face account (opsongs91). 480 x 480, 16 fps, 3 s (chin tuck
+   1.5 s, see below).
 
 Draft content: form and muscle highlights still need review by a physiotherapist.
 
@@ -25,10 +26,14 @@ Draft content: form and muscle highlights still need review by a physiotherapist
 | clamshell | MAHYbgq0Hn0 | MAHYbhNpcrw | frames 0-48 |
 | quad_set | MAHYbu3FlVw | MAHYbneykD4 | frames 0-48 |
 | cat_cow | MAHYbt1zK2k (cow) | MAHYbrqJclI (cat) | frames 16-48 (deep arch to round) |
-| chin_tuck | MAHYbqgcvI0 | MAHYbkAFoPo | no clip yet: photos cross-faded |
-| pendulum | MAHYbgceLgg | MAHYbs-qBpE | no clip yet: photos cross-faded |
+| chin_tuck | MAHYbqgcvI0 | MAHYbkAFoPo | frames 2-24 of a 1.5 s clip (frames 0-1 are greyer) |
+| pendulum | MAHYbgceLgg | MAHYbs-qBpE | frames 33-44: one small swing, back to front, played back and forth |
 | calf_stretch | MAHYbgQlYQE | MAHYbtwz3cc | frames 0-48 |
 
-The first pendulum clip was rejected and deleted: the arm swung up to
-shoulder height behind the body, which is not a relaxed pendulum. The chin
-tuck clip is waiting for the next free ZeroGPU quota.
+Rejected clips (deleted): the first pendulum clip swung the arm up to
+shoulder height behind the body, which is not a relaxed pendulum. The kept
+pendulum clip also swings back too far in frames 24-32, so only frames 33-44
+are used. Three 3 s chin tuck clips tipped the head far back to look at the
+ceiling (neck extension, the opposite of a chin tuck): with near-identical
+start and end photos the model fills the time with invented motion. The 1.5 s
+clip leaves no room for that and glides straight back with the chin level.

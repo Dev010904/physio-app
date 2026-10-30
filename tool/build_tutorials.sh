@@ -46,7 +46,7 @@ glute_bridge 0 48 2
 clamshell 0 48 2
 quad_set 0 48 2
 cat_cow 16 48 2
-chin_tuck photos
-pendulum photos
+chin_tuck 2 24 1
+pendulum 33 44 1
 calf_stretch 0 48 2
 EOF

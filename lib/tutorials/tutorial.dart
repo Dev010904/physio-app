@@ -119,7 +119,7 @@ const tutorials = <String, Tutorial>{
   ),
   'chin_tuck': Tutorial(
     'chin_tuck',
-    frames: 2,
+    frames: 23,
     muscles: {
       Effect.works: ['Deep neck flexors (front of neck)'],
       Effect.stretches: ['Back of neck'],
@@ -131,7 +131,7 @@ const tutorials = <String, Tutorial>{
   ),
   'pendulum': Tutorial(
     'pendulum',
-    frames: 2,
+    frames: 12,
     sway: true,
     muscles: {
       Effect.loosens: ['Shoulder joint (kept relaxed)'],

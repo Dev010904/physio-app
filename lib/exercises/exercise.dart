@@ -54,7 +54,7 @@ class Prescription {
   /// Short human summary, e.g. "2 sets × 10 reps · hold 5 s · each side".
   String get summary {
     final parts = <String>[
-      isTimed ? '$sets × ${durationSeconds}s' : '$sets sets × $reps reps',
+      isTimed ? '$sets × ${durationSeconds}s' : '$sets ${sets == 1 ? 'set' : 'sets'} × $reps ${reps == 1 ? 'rep' : 'reps'}',
       if (!isTimed && holdSeconds > 0) 'hold $holdSeconds s',
       if (perSide) 'each side',
       'rest $restSeconds s',

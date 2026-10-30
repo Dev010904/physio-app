@@ -287,7 +287,7 @@ abstract class AppLocalizations {
   /// No description provided for @doseSetsReps.
   ///
   /// In en, this message translates to:
-  /// **'{sets} sets × {reps} reps'**
+  /// **'{sets, plural, =1{1 set} other{{sets} sets}} × {reps, plural, =1{1 rep} other{{reps} reps}}'**
   String doseSetsReps(int sets, int reps);
 
   /// No description provided for @doseSetsTime.
@@ -767,13 +767,13 @@ abstract class AppLocalizations {
   /// No description provided for @setsOfPlanned.
   ///
   /// In en, this message translates to:
-  /// **'{done} of {planned} sets'**
+  /// **'{done} of {planned, plural, =1{1 set} other{{planned} sets}}'**
   String setsOfPlanned(int done, int planned);
 
   /// No description provided for @repsCount.
   ///
   /// In en, this message translates to:
-  /// **'{reps} reps'**
+  /// **'{reps, plural, =1{1 rep} other{{reps} reps}}'**
   String repsCount(int reps);
 
   /// No description provided for @sharedWithPhysio.

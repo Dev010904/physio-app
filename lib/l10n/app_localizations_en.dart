@@ -125,7 +125,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String doseSetsReps(int sets, int reps) {
-    return '$sets sets × $reps reps';
+    String _temp0 = intl.Intl.pluralLogic(
+      sets,
+      locale: localeName,
+      other: '$sets sets',
+      one: '1 set',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      reps,
+      locale: localeName,
+      other: '$reps reps',
+      one: '1 rep',
+    );
+    return '$_temp0 × $_temp1';
   }
 
   @override
@@ -451,12 +463,24 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String setsOfPlanned(int done, int planned) {
-    return '$done of $planned sets';
+    String _temp0 = intl.Intl.pluralLogic(
+      planned,
+      locale: localeName,
+      other: '$planned sets',
+      one: '1 set',
+    );
+    return '$done of $_temp0';
   }
 
   @override
   String repsCount(int reps) {
-    return '$reps reps';
+    String _temp0 = intl.Intl.pluralLogic(
+      reps,
+      locale: localeName,
+      other: '$reps reps',
+      one: '1 rep',
+    );
+    return '$_temp0';
   }
 
   @override

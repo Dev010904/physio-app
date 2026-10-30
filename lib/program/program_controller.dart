@@ -63,6 +63,9 @@ abstract interface class ProgramBackend {
   /// Sends sessions (with their exercises) and flags. Each id is made on the
   /// phone, so sending the same record twice changes nothing.
   Future<void> push(String patientId, List<SessionRecord> sessions, List<FlagRecord> flags);
+
+  /// Deletes the patient's record at the clinic and signs this phone out.
+  Future<void> deleteMyData();
 }
 
 enum SyncState { idle, syncing, offline }
@@ -199,6 +202,20 @@ class ProgramController extends ChangeNotifier {
   Future<void> dismissUpdate() async {
     _updated = false;
     await store.write(_updatedKey, null);
+    notifyListeners();
+  }
+
+  /// Deletes everything about the patient: first their record at the clinic
+  /// when linked, which needs the internet (if that fails, it throws and
+  /// nothing is deleted), then every log, note and link on this phone.
+  Future<void> deleteAllData() async {
+    final backend = this.backend;
+    if (_link != null && backend != null) await backend.deleteMyData();
+    await store.clear();
+    _link = null;
+    _updated = false;
+    _program = Program.starter(library);
+    logsChanged();
     notifyListeners();
   }
 

@@ -689,4 +689,39 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get cameraFailed =>
       'The camera could not start, so reps follow the timer.';
+
+  @override
+  String get yourData => 'Your data';
+
+  @override
+  String get deleteMyData => 'Delete my data';
+
+  @override
+  String get deleteMyDataBody =>
+      'Removes your exercise history and notes from this phone.';
+
+  @override
+  String get deleteMyDataLinkedBody =>
+      'Removes your history and notes from this phone and your record at your physio\'s clinic.';
+
+  @override
+  String get deleteConfirmTitle => 'Delete your data?';
+
+  @override
+  String get deleteConfirmBody =>
+      'This removes your exercise history, pain scores and notes from this phone. It cannot be undone.';
+
+  @override
+  String get deleteConfirmLinkedBody =>
+      'This removes your exercise history, pain scores and notes from this phone and from your physio\'s clinic, and unlinks this phone. Your physio will no longer see your progress. It cannot be undone.';
+
+  @override
+  String get deleteAction => 'Delete';
+
+  @override
+  String get dataDeleted => 'Your data was deleted.';
+
+  @override
+  String get deleteNeedsInternet =>
+      'Deleting your record at the clinic needs the internet. Nothing was deleted; try again when you\'re online.';
 }

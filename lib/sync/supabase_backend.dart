@@ -41,6 +41,13 @@ class SupabaseBackend implements ProgramBackend {
   }
 
   @override
+  Future<void> deleteMyData() async {
+    // Removes the patient row; the database deletes their logs and programs with it.
+    await _client.rpc('delete_my_data');
+    await _client.auth.signOut();
+  }
+
+  @override
   Future<Map<String, dynamic>?> latestProgram() => _client
       .from('programs')
       .select(_programColumns)

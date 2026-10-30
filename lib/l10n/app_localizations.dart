@@ -1177,6 +1177,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The camera could not start, so reps follow the timer.'**
   String get cameraFailed;
+
+  /// No description provided for @yourData.
+  ///
+  /// In en, this message translates to:
+  /// **'Your data'**
+  String get yourData;
+
+  /// No description provided for @deleteMyData.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete my data'**
+  String get deleteMyData;
+
+  /// No description provided for @deleteMyDataBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Removes your exercise history and notes from this phone.'**
+  String get deleteMyDataBody;
+
+  /// No description provided for @deleteMyDataLinkedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Removes your history and notes from this phone and your record at your physio\'s clinic.'**
+  String get deleteMyDataLinkedBody;
+
+  /// No description provided for @deleteConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete your data?'**
+  String get deleteConfirmTitle;
+
+  /// No description provided for @deleteConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This removes your exercise history, pain scores and notes from this phone. It cannot be undone.'**
+  String get deleteConfirmBody;
+
+  /// No description provided for @deleteConfirmLinkedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This removes your exercise history, pain scores and notes from this phone and from your physio\'s clinic, and unlinks this phone. Your physio will no longer see your progress. It cannot be undone.'**
+  String get deleteConfirmLinkedBody;
+
+  /// No description provided for @deleteAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get deleteAction;
+
+  /// No description provided for @dataDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Your data was deleted.'**
+  String get dataDeleted;
+
+  /// No description provided for @deleteNeedsInternet.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleting your record at the clinic needs the internet. Nothing was deleted; try again when you\'re online.'**
+  String get deleteNeedsInternet;
 }
 
 class _AppLocalizationsDelegate

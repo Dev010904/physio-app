@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:physio_app/app.dart';
+import 'package:physio_app/data/local_store.dart';
 import 'package:physio_app/exercises/exercise.dart';
 import 'package:physio_app/onboarding/welcome.dart';
+import 'package:physio_app/program/program_controller.dart';
 import 'package:physio_app/settings/appearance.dart';
 import 'package:physio_app/settings/language.dart';
 
@@ -79,6 +81,29 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('10 exercises'), findsOneWidget);
+  });
+
+  testWidgets('Delete my data asks first, then clears this phone', (tester) async {
+    final store = MemoryStore();
+    await store.startSession(SessionRecord(id: 's1', performedOn: DateTime(2026, 10, 30), startedAt: DateTime(2026, 10, 30)));
+    await tester.pumpWidget(PhysioApp(library: library, programs: ProgramController.starter(library, store: store)));
+    await tester.tap(find.byIcon(Icons.settings_outlined));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(find.text('Delete my data'), 200);
+    await tester.tap(find.text('Delete my data'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Delete your data?'), findsOneWidget);
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    expect(await store.sessions(), hasLength(1));
+
+    await tester.tap(find.text('Delete my data'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(TextButton, 'Delete'));
+    await tester.pumpAndSettle();
+    expect(find.text('Your data was deleted.'), findsOneWidget);
+    expect(await store.sessions(), isEmpty);
   });
 
   testWidgets('appearance setting switches between light and dark', (tester) async {

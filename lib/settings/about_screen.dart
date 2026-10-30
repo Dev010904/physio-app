@@ -101,6 +101,10 @@ class AboutScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 20),
+          Text(l.yourData, style: text.titleMedium),
+          const SizedBox(height: 4),
+          ListenableBuilder(listenable: programs, builder: (context, _) => _DataSection(programs: programs)),
+          const SizedBox(height: 20),
           Text(l.thisBuild, style: text.titleMedium),
           const SizedBox(height: 4),
           _StatusTile(label: l.worksOffline, ok: true),
@@ -182,6 +186,57 @@ class _PhysioSection extends StatelessWidget {
           onTap: openLink,
         ),
       ],
+    );
+  }
+}
+
+class _DataSection extends StatelessWidget {
+  const _DataSection({required this.programs});
+
+  final ProgramController programs;
+
+  Future<void> _delete(BuildContext context) async {
+    final l = context.l10n;
+    final linked = programs.isLinked;
+    final sure = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l.deleteConfirmTitle),
+        content: Text(linked ? l.deleteConfirmLinkedBody : l.deleteConfirmBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(MaterialLocalizations.of(context).cancelButtonLabel),
+          ),
+          TextButton(
+            style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(l.deleteAction),
+          ),
+        ],
+      ),
+    );
+    if (sure != true || !context.mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      await programs.deleteAllData();
+      messenger.showSnackBar(SnackBar(content: Text(l.dataDeleted)));
+    } catch (e) {
+      debugPrint('delete failed: $e');
+      messenger.showSnackBar(SnackBar(content: Text(l.deleteNeedsInternet)));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l = context.l10n;
+    final error = Theme.of(context).colorScheme.error;
+    return ListTile(
+      contentPadding: EdgeInsets.zero,
+      leading: Icon(Icons.delete_forever_outlined, color: error),
+      title: Text(l.deleteMyData, style: TextStyle(color: error)),
+      subtitle: Text(programs.isLinked ? l.deleteMyDataLinkedBody : l.deleteMyDataBody),
+      onTap: () => _delete(context),
     );
   }
 }

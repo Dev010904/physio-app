@@ -1,0 +1,6 @@
+# Copy to android/key.properties (ignored by git) and fill in.
+# The upload keystore itself stays outside the project folder.
+storeFile=C:/Users/hp602/keys/physiosathi-upload.jks
+storePassword=
+keyAlias=upload
+keyPassword=

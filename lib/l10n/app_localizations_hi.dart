@@ -664,4 +664,39 @@ class AppLocalizationsHi extends AppLocalizations {
   @override
   String get cameraFailed =>
       'कैमरा शुरू नहीं हो सका, इसलिए गिनती टाइमर से होगी।';
+
+  @override
+  String get yourData => 'आपका डेटा';
+
+  @override
+  String get deleteMyData => 'मेरा डेटा मिटाएँ';
+
+  @override
+  String get deleteMyDataBody =>
+      'इस फ़ोन से आपका व्यायाम इतिहास और नोट्स हटा देता है।';
+
+  @override
+  String get deleteMyDataLinkedBody =>
+      'इस फ़ोन से आपका इतिहास और नोट्स, और फ़िज़ियो के क्लिनिक से आपका रिकॉर्ड हटा देता है।';
+
+  @override
+  String get deleteConfirmTitle => 'अपना डेटा मिटाएँ?';
+
+  @override
+  String get deleteConfirmBody =>
+      'इससे आपका व्यायाम इतिहास, दर्द के अंक और नोट्स इस फ़ोन से हट जाएँगे। इसे वापस नहीं लाया जा सकता।';
+
+  @override
+  String get deleteConfirmLinkedBody =>
+      'इससे आपका व्यायाम इतिहास, दर्द के अंक और नोट्स इस फ़ोन से और फ़िज़ियो के क्लिनिक से हट जाएँगे, और यह फ़ोन क्लिनिक से अलग हो जाएगा। आपके फ़िज़ियो आपकी प्रगति नहीं देख पाएँगे। इसे वापस नहीं लाया जा सकता।';
+
+  @override
+  String get deleteAction => 'मिटाएँ';
+
+  @override
+  String get dataDeleted => 'आपका डेटा मिटा दिया गया।';
+
+  @override
+  String get deleteNeedsInternet =>
+      'क्लिनिक से रिकॉर्ड मिटाने के लिए इंटरनेट चाहिए। कुछ भी नहीं मिटाया गया; इंटरनेट चालू होने पर फिर से कोशिश करें।';
 }

@@ -228,5 +228,16 @@
   "cameraBest": "Best {degrees}°",
   "@cameraBest": {"placeholders":{"degrees":{"type":"int"}}},
   "cameraDenied": "Camera permission is off, so reps follow the timer.",
-  "cameraFailed": "The camera could not start, so reps follow the timer."
+  "cameraFailed": "The camera could not start, so reps follow the timer.",
+
+  "yourData": "Your data",
+  "deleteMyData": "Delete my data",
+  "deleteMyDataBody": "Removes your exercise history and notes from this phone.",
+  "deleteMyDataLinkedBody": "Removes your history and notes from this phone and your record at your physio's clinic.",
+  "deleteConfirmTitle": "Delete your data?",
+  "deleteConfirmBody": "This removes your exercise history, pain scores and notes from this phone. It cannot be undone.",
+  "deleteConfirmLinkedBody": "This removes your exercise history, pain scores and notes from this phone and from your physio's clinic, and unlinks this phone. Your physio will no longer see your progress. It cannot be undone.",
+  "deleteAction": "Delete",
+  "dataDeleted": "Your data was deleted.",
+  "deleteNeedsInternet": "Deleting your record at the clinic needs the internet. Nothing was deleted; try again when you're online."
 }

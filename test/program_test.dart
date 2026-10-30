@@ -67,6 +67,7 @@ class _FakeBackend implements ProgramBackend {
   Map<String, dynamic>? program;
   final pushed = <String>[];
   bool offline = false;
+  bool deleted = false;
 
   @override
   Future<CareLink> link(String code) async {
@@ -84,6 +85,12 @@ class _FakeBackend implements ProgramBackend {
   Future<void> push(String patientId, List<SessionRecord> sessions, List<FlagRecord> flags) async {
     if (offline) throw const SocketException('offline');
     pushed.addAll([for (final s in sessions) 'session:${s.id}', for (final f in flags) 'flag:${f.id}']);
+  }
+
+  @override
+  Future<void> deleteMyData() async {
+    if (offline) throw const SocketException('offline');
+    deleted = true;
   }
 }
 
@@ -124,6 +131,27 @@ void main() {
     expect(again.version, 2);
     expect(again.entries.last.days, {1, 3, 5});
     expect(again.entries.first.exercise.prescription.summary, program.entries.first.exercise.prescription.summary);
+  });
+
+  test('deleting my data clears the clinic record first, then everything on the phone', () async {
+    final store = MemoryStore();
+    final backend = _FakeBackend()..offline = true;
+    final programs = ProgramController.starter(library, store: store, backend: backend);
+    await programs.linkWithCode('ABCD2345').catchError((_) {});
+    await store.startSession(SessionRecord(id: 's1', programId: 'p1', performedOn: DateTime(2026, 10, 30), startedAt: DateTime(2026, 10, 30)));
+
+    // Offline: the clinic copy cannot go, so nothing goes.
+    await expectLater(programs.deleteAllData(), throwsA(isA<SocketException>()));
+    expect(programs.isLinked, isTrue);
+    expect(await store.sessions(), hasLength(1));
+
+    backend.offline = false;
+    await programs.deleteAllData();
+    expect(backend.deleted, isTrue);
+    expect(programs.isLinked, isFalse);
+    expect(programs.program.fromClinic, isFalse);
+    expect(await store.sessions(), isEmpty);
+    expect(await store.read('care_link'), isNull);
   });
 
   test('linking downloads the program; a newer version raises the update note', () async {
